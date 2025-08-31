@@ -1,0 +1,29 @@
+# Godot-specific files
+# Godot 4 editor metadata and cache
+.godot/
+# Godot 3 editor metadata and cache
+.import/
+# Compiled translations
+*.translation
+
+# Mono/.NET files for Godot C# projects
+# This folder contains intermediate files from the C# build process
+.mono/
+
+# C# / .NET build artifacts
+bin/
+obj/
+
+# IDE-specific files
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userprefs
+
+# JetBrains Rider
+.idea/
+*.sln.dotsettings
+
+# VS Code
+.vscode/

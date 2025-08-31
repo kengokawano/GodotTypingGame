@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3 uid="uid://blkgy3omvu03m"]
+
+[ext_resource type="Script" uid="uid://cg0ubaipxh6ia" path="res://Main.cs" id="1_abcde"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_abcde")
+
+[node name="QuestionLabel" type="Label" parent="."]
+offset_left = 50.0
+offset_top = 100.0
+offset_right = 1100.0
+offset_bottom = 150.0
+theme_override_font_sizes/font_size = 32
+text = "問題文をここに表示"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KanaLabel" type="Label" parent="."]
+offset_left = 50.0
+offset_top = 200.0
+offset_right = 1100.0
+offset_bottom = 300.0
+theme_override_font_sizes/font_size = 48
+text = "かな : roman"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="."]
+offset_left = 50.0
+offset_top = 400.0
+offset_right = 1100.0
+offset_bottom = 450.0
+theme_override_font_sizes/font_size = 24
+text = "スコアや時間を表示"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StartTimeAttackButton" type="Button" parent="."]
+offset_left = 300.0
+offset_top = 500.0
+offset_right = 500.0
+offset_bottom = 550.0
+text = "タイムアタック開始"
+
+[node name="StartQuestButton" type="Button" parent="."]
+offset_left = 650.0
+offset_top = 500.0
+offset_right = 850.0
+offset_bottom = 550.0
+text = "クエスト開始"
+
+[node name="GameTimer" type="Timer" parent="."]
