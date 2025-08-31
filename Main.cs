@@ -3,14 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using TypingGame; // RomanTypingParserJp.cs の namespace
-using TypingGame.Data; // Question.cs の namespace
+using TypingGame; // RomanTypingParserJp
+using TypingGame.Data; // Question, QuestionLoader
+
+//https://www.reddit.com/r/godot/comments/wg90nh/debugging_godot_4x_mono_from_vs_code/
+// debugのブレーク方法はこちら
 
 public partial class Main : Node2D
 {
-    // ================================================================
-    // UIノードへの参照
-    // ================================================================
     private Label _questionLabel;
     private Label _kanaLabel;
     private Label _statsLabel;
@@ -18,10 +18,6 @@ public partial class Main : Node2D
     private Button _startQuestButton;
     private Timer _gameTimer;
 
-    // ================================================================
-    // Form1.cs から持ってくるプロパティやフィールド
-    // (ほぼそのままコピーできます)
-    // ================================================================
     public enum GameMode { None, TimeAttack, Quest }
     private GameMode _currentMode = GameMode.None;
     private int _remainingTimeInSeconds = 0;
@@ -31,26 +27,18 @@ public partial class Main : Node2D
     private int _elapsedTimeInSeconds = 0;
     private int _comboCount = 0;
     private int _totalKeyPresses = 0;
-    private List<int> _ranking = new List<int>();
+    private readonly List<int> _ranking = new();
     private List<Question> _allQuestions;
     private string _currentQuestionText;
-    private Random _random = new Random();
+    private readonly Random _random = new();
     private List<string> _currentKana;
     private List<List<string>> _currentRoman;
     private int _currentKanaIndex = 0;
     private List<string> _candidateRomans;
     private int _inputRomanIndex = 0;
 
-    // ================================================================
-    // Godotのライフサイクルメソッド
-    // ================================================================
-
-    /// <summary>
-    /// ノードがシーンツリーに追加されたときに一度だけ呼ばれる (初期化処理)
-    /// </summary>
     public override void _Ready()
     {
-        // UIノードへの参照を取得
         _questionLabel = GetNode<Label>("QuestionLabel");
         _kanaLabel = GetNode<Label>("KanaLabel");
         _statsLabel = GetNode<Label>("StatsLabel");
@@ -58,67 +46,44 @@ public partial class Main : Node2D
         _startQuestButton = GetNode<Button>("StartQuestButton");
         _gameTimer = GetNode<Timer>("GameTimer");
 
-        // ボタンのシグナル（イベント）を接続
         _startTimeAttackButton.Pressed += OnStartTimeAttackButtonPressed;
         _startQuestButton.Pressed += OnStartQuestButtonPressed;
-
-        // タイマーのシグナルを接続
         _gameTimer.Timeout += OnGameTimerTimeout;
 
-        // ゲームの初期化
-        RomanTypingParserJp.ReadJsonFile(); // パース辞書の読み込み
+        RomanTypingParserJp.ReadJsonFile();
         LoadQuestions();
         UpdateDisplay();
     }
 
-    /// <summary>
-    /// キー入力があったときに呼ばれる
-    /// </summary>
     public override void _Input(InputEvent @event)
     {
         if (!_isGameStarted) return;
 
-        // キープレスイベントかどうかの判定
         if (@event is InputEventKey eventKey && eventKey.Pressed && !eventKey.IsEcho())
         {
-            // 入力された文字を取得
-            // GodotではKeycodeからUnicode文字を取得する必要があります
             string inputChar = OS.GetKeycodeString(eventKey.Keycode);
-
-            // 小文字に変換
             if (inputChar == "Minus" || inputChar == "Hyphen" || inputChar == "KpSubtract") inputChar = "-";
+
             if (inputChar.Length == 1)
             {
                 inputChar = inputChar.ToLower();
-                HandleKeyPress(inputChar); // Form1_KeyPress内のロジックを呼び出す
+                HandleKeyPress(inputChar);
             }
         }
     }
-
-
-    // ================================================================
-    // Form1.cs から移植するメソッド群
-    // (メソッドの中身はほぼそのままコピーできます)
-    // ================================================================
 
     private void LoadQuestions()
     {
         try
         {
-            GD.Print("  Loading questions from JSON file...");
-            // Godotのファイルパス (res://) を使用
             _allQuestions = QuestionLoader.LoadQuestionsFromFile("res://questions.json");
-
-
-            GD.Print($"問題ファイルを正常に読み込みました。問題数: {_allQuestions.Count}" );
         }
         catch (Exception ex)
         {
-            GD.PrintErr($"問題ファイルの読み込みに失敗しました: {ex.Message}");
-            // エラー時のダミー問題
+            GD.PrintErr($"Failed to load questions: {ex.Message}");
             _allQuestions = new List<Question>
             {
-                new Question { id = 0, text = "エラー", kana = "えらー", tags = new List<string> { "エラー" }, era = 2025 }
+                new Question { id = 0, text = "Fallback", kana = "あ", tags = new List<string> { "fallback" }, era = 2025 }
             };
         }
     }
@@ -144,7 +109,6 @@ public partial class Main : Node2D
             _questionsCompleted = 0;
         }
 
-        // UIの表示/非表示
         _startTimeAttackButton.Visible = false;
         _startQuestButton.Visible = false;
 
@@ -154,16 +118,12 @@ public partial class Main : Node2D
 
     private void LoadNextQuestion()
     {
-
-        GD.Print("LoadNextQuestion called");
         _currentKanaIndex = 0;
         _inputRomanIndex = 0;
         _candidateRomans = null;
 
         var question = _allQuestions[_random.Next(_allQuestions.Count)];
         _currentQuestionText = question.text;
-
-
 
         (_currentKana, _currentRoman) = RomanTypingParserJp.ConstructTypeSentence(question.kana);
 
@@ -178,66 +138,57 @@ public partial class Main : Node2D
 
         if (_currentMode == GameMode.Quest)
         {
-            sb.AppendLine("🎉🎉🎉 クエストクリア！ 🎉🎉🎉");
-            sb.AppendLine($"クリアタイム: {_elapsedTimeInSeconds} 秒");
-            sb.AppendLine($"総タイプ数: {_totalKeyPresses}");
+            sb.AppendLine("Quest Finished");
+            sb.AppendLine($"Time: {_elapsedTimeInSeconds}s");
+            sb.AppendLine($"Keys: {_totalKeyPresses}");
         }
         else if (_currentMode == GameMode.TimeAttack)
         {
-            sb.AppendLine("⌛⌛⌛ タイムアップ！ ⌛⌛⌛");
-            sb.AppendLine($"スコア: {_totalKeyPresses} 打");
+            sb.AppendLine("Time Attack Finished");
+            sb.AppendLine($"Score: {_totalKeyPresses}");
         }
 
         _kanaLabel.Text = sb.ToString();
         _questionLabel.Text = "";
 
-        // スタートボタンを再表示
         _startTimeAttackButton.Visible = true;
         _startQuestButton.Visible = true;
 
         _currentMode = GameMode.None;
     }
 
-
     private void UpdateDisplay()
     {
         if (!_isGameStarted)
         {
-            _kanaLabel.Text = "モードを選んでスタートしてください";
-            _questionLabel.Text = "タイピングゲーム";
+            _kanaLabel.Text = "Press a button to start";
+            _questionLabel.Text = "Typing Game";
             _statsLabel.Text = "";
             return;
         }
 
-        // --- ゲーム中の表示 ---
-
-        // 1. 問題文の表示
         _questionLabel.Text = _currentQuestionText;
 
-        // 2. 現在のターゲット（かな＋ローマ字）の表示
         var currentKana = _currentKana.Count > _currentKanaIndex ? _currentKana[_currentKanaIndex] : "";
         var currentRomans = _currentRoman.Count > _currentKanaIndex ? _currentRoman[_currentKanaIndex] : new List<string>();
         string romanText;
 
         if (_candidateRomans != null && _candidateRomans.Any() && _inputRomanIndex > 0)
         {
-            // 入力中の場合、入力済み部分と未入力部分を分けて表示
             var formattedCandidates = _candidateRomans.Select(r =>
             {
                 var completed = r.Substring(0, _inputRomanIndex);
                 var remaining = r.Substring(_inputRomanIndex);
-                return $"[{completed}]{remaining}"; // 例: [k]a
+                return $"[{completed}]{remaining}";
             });
             romanText = string.Join(", ", formattedCandidates);
         }
         else
         {
-            // 初期状態の場合、すべての候補を表示
             romanText = string.Join(", ", currentRomans);
         }
         _kanaLabel.Text = $"{currentKana} : {romanText}";
 
-        // 3. 統計情報の表示
         string statsText = "";
         if (_currentMode == GameMode.Quest)
         {
@@ -256,10 +207,8 @@ public partial class Main : Node2D
 
         _totalKeyPresses++;
 
-        // 現在のかなに対応するローマ字リストを取得
         var allRomans = _currentRoman.Count > _currentKanaIndex ? _currentRoman[_currentKanaIndex] : new List<string>();
 
-        // 1. 最初の文字の入力処理
         if (_inputRomanIndex == 0)
         {
             _candidateRomans = allRomans.Where(r => r.StartsWith(inputChar)).ToList();
@@ -269,10 +218,9 @@ public partial class Main : Node2D
             }
             else
             {
-                _comboCount = 0; // ミス
+                _comboCount = 0;
             }
         }
-        // 2. 二文字目以降の入力処理
         else
         {
             var nextCandidates = _candidateRomans
@@ -286,25 +234,21 @@ public partial class Main : Node2D
             }
             else
             {
-                // ミス：状態をリセットして、もう一度最初の文字から
                 _inputRomanIndex = 0;
                 _candidateRomans = null;
                 _comboCount = 0;
-                // ミスしたが、今回の入力が別の候補の先頭文字かもしれないので再評価
                 HandleKeyPress(inputChar);
-                return; // 再帰呼び出ししたので、この後の処理は不要
+                return;
             }
         }
 
-        // 3. かな入力完了の判定
         if (_candidateRomans != null && _candidateRomans.Any(r => r.Length == _inputRomanIndex))
         {
-            _currentKanaIndex++; // 次のかなへ
+            _currentKanaIndex++;
             _inputRomanIndex = 0;
             _candidateRomans = null;
             _comboCount++;
 
-            // 4. 1問すべての入力が完了したかどうかの判定
             if (_currentKanaIndex >= _currentKana.Count)
             {
                 if (_currentMode == GameMode.Quest)
@@ -316,19 +260,13 @@ public partial class Main : Node2D
                         return;
                     }
                 }
-                LoadNextQuestion(); // 次の問題へ
+                LoadNextQuestion();
                 return;
             }
         }
 
-        // 5. 表示の更新
         UpdateDisplay();
     }
-
-
-    // ================================================================
-    // シグナルハンドラ (イベント処理)
-    // ================================================================
 
     private void OnStartTimeAttackButtonPressed()
     {
@@ -342,7 +280,6 @@ public partial class Main : Node2D
 
     private void OnGameTimerTimeout()
     {
-        // (Form1.csのGameTimer_Tickの中身を移植)
         if (_currentMode == GameMode.Quest)
         {
             _elapsedTimeInSeconds++;
@@ -358,3 +295,4 @@ public partial class Main : Node2D
         UpdateDisplay();
     }
 }
+
