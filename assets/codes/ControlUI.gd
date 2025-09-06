@@ -1,13 +1,13 @@
 extends CanvasLayer
 
-@onready var btn_start: Button = $btnStart
-@onready var btn_debug_toggle: Button = $btnDebugToggle
+@onready var btn_start: Button = $VBoxContainer/HBoxContainer/btnStart
+@onready var btn_debug_toggle: Button = $VBoxContainer/HBoxContainer/btnDebugToggle
 @onready var debug_panel: Panel = $DebugPanel
 @onready var start_id_input: LineEdit = $DebugPanel/StartIdInput
 @onready var end_id_input: LineEdit = $DebugPanel/EndIdInput
 @onready var btn_debug_start: Button = $DebugPanel/btnDebugStart
 @onready var btn_debug_close: Button = $DebugPanel/btnDebugClose
-@onready var la_score_label: Label = $laScore
+@onready var la_score_label: Label = $VBoxContainer/laScore
 
 # GameDataシングルトンへの参照（autoloadとして設定されている想定）
 var GameData = null

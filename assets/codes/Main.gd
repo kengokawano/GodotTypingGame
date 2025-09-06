@@ -35,7 +35,6 @@ var _debug_end_id: int = 0
 var _debug_current_index: int = 0
 
 # シングルトンへの参照
-# シングルトンへの参照
 var GameData = null
 var RomanTypingParser = null
 const QuestionLoader = preload("res://assets/codes/QuestionLoader.gd")

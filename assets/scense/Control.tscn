@@ -10,35 +10,15 @@ font_size = 72
 [node name="CanvasLayer" type="CanvasLayer"]
 script = ExtResource("1_vxiwm")
 
-[node name="Label2" type="Label" parent="."]
-offset_right = 465.0
-offset_bottom = 194.0
-text = "TypingGame"
-label_settings = SubResource("LabelSettings_8kh01")
-
-[node name="laScore" type="Label" parent="."]
-offset_left = 6.0
-offset_top = 191.0
-offset_right = 471.0
-offset_bottom = 385.0
-text = "TypingGame"
-label_settings = SubResource("LabelSettings_8kh01")
-
-[node name="btnStart" type="Button" parent="."]
-offset_left = 535.0
-offset_top = 543.0
-offset_right = 767.0
-offset_bottom = 684.0
-theme_override_fonts/font = ExtResource("2_vxiwm")
-theme_override_font_sizes/font_size = 32
-text = "Start"
-
 [node name="DebugPanel" type="Panel" parent="."]
 visible = false
-offset_left = 800.0
-offset_top = 100.0
-offset_right = 1150.0
-offset_bottom = 400.0
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -350.0
+offset_top = -300.0
 
 [node name="DebugTitle" type="Label" parent="DebugPanel"]
 layout_mode = 0
@@ -111,11 +91,38 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "Close"
 
-[node name="btnDebugToggle" type="Button" parent="."]
-offset_left = 50.0
-offset_top = 50.0
-offset_right = 150.0
-offset_bottom = 90.0
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label2" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "TypingGame"
+label_settings = SubResource("LabelSettings_8kh01")
+horizontal_alignment = 1
+
+[node name="laScore" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "TypingGame"
+label_settings = SubResource("LabelSettings_8kh01")
+horizontal_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="btnDebugToggle" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 text = "Debug"
+
+[node name="btnStart" type="Button" parent="VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_vxiwm")
+theme_override_font_sizes/font_size = 32
+text = "Start"
