@@ -15,7 +15,7 @@ namespace TypingGame
         {
             if (_mappingDictionary.Count > 0) return;
 
-            string jsonStr = Godot.FileAccess.GetFileAsString("res://romanTypingParseDictionary.json");
+            string jsonStr = Godot.FileAccess.GetFileAsString("res://assets/codes/romanTypingParseDictionary.json");
             var jsonData = JsonConvert.DeserializeObject<RomanMapping[]>(jsonStr);
             if (jsonData == null)
             {

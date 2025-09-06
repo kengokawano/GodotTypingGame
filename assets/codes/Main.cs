@@ -11,14 +11,17 @@ using TypingGame.Data; // Question, QuestionLoader
 
 public partial class Main : Node2D
 {
+
+    [Signal]
+    public delegate void GameOverEventHandler(int score);
+
     private Label _questionLabel;
     private Label _kanaLabel;
     private Label _statsLabel;
-    private Button _startTimeAttackButton;
-    private Button _startQuestButton;
     private Timer _gameTimer;
 
     public enum GameMode { None, TimeAttack, Quest }
+
     private GameMode _currentMode = GameMode.None;
     private int _remainingTimeInSeconds = 0;
     private int _questionsCompleted = 0;
@@ -39,20 +42,39 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        _questionLabel = GetNode<Label>("QuestionLabel");
-        _kanaLabel = GetNode<Label>("KanaLabel");
-        _statsLabel = GetNode<Label>("StatsLabel");
-        _startTimeAttackButton = GetNode<Button>("StartTimeAttackButton");
-        _startQuestButton = GetNode<Button>("StartQuestButton");
-        _gameTimer = GetNode<Timer>("GameTimer");
+        GD.Print("Program started");
+        try
+        {
+            GD.Print("Getting nodes...");
+            _questionLabel = GetNode<Label>("QuestionLabel");
+            _kanaLabel = GetNode<Label>("KanaLabel");
+            _statsLabel = GetNode<Label>("StatsLabel");
 
-        _startTimeAttackButton.Pressed += OnStartTimeAttackButtonPressed;
-        _startQuestButton.Pressed += OnStartQuestButtonPressed;
-        _gameTimer.Timeout += OnGameTimerTimeout;
+            _gameTimer = GetNode<Timer>("GameTimer");
+            GD.Print("All nodes found successfully");
 
-        RomanTypingParserJp.ReadJsonFile();
-        LoadQuestions();
-        UpdateDisplay();
+            GD.Print("Connecting timer signal...");
+            _gameTimer.Timeout += OnGameTimerTimeout;
+
+            GD.Print("Reading JSON file...");
+            RomanTypingParserJp.ReadJsonFile();
+            
+            GD.Print("Loading questions...");
+            LoadQuestions();
+            
+            GD.Print("Updating display...");
+            UpdateDisplay();
+            
+            // ゲームを自動的に開始（少し遅延させる）
+            GD.Print("About to call StartTimeAttack deferred");
+            CallDeferred(nameof(StartTimeAttack));
+            GD.Print("_Ready completed successfully");
+        }
+        catch (Exception ex)
+        {
+            GD.PrintErr($"Error in _Ready: {ex.Message}");
+            GD.PrintErr($"Stack trace: {ex.StackTrace}");
+        }
     }
 
     public override void _Input(InputEvent @event)
@@ -76,7 +98,7 @@ public partial class Main : Node2D
     {
         try
         {
-            _allQuestions = QuestionLoader.LoadQuestionsFromFile("res://questions.json");
+            _allQuestions = QuestionLoader.LoadQuestionsFromFile("res://assets/data/questions.json");
         }
         catch (Exception ex)
         {
@@ -88,10 +110,18 @@ public partial class Main : Node2D
         }
     }
 
+    public void StartTimeAttack()
+    {
+        GD.Print("StartTimeAttack called");
+        StartGame(GameMode.TimeAttack);
+    }
+    
     private void StartGame(GameMode mode)
     {
+        GD.Print($"StartGame called with mode: {mode}");
         _currentMode = mode;
         _isGameStarted = true;
+        GD.Print($"Game started, _isGameStarted: {_isGameStarted}");
 
         _comboCount = 0;
         _totalKeyPresses = 0;
@@ -101,7 +131,7 @@ public partial class Main : Node2D
 
         if (_currentMode == GameMode.TimeAttack)
         {
-            _remainingTimeInSeconds = 60;
+            _remainingTimeInSeconds = 10;
         }
         else if (_currentMode == GameMode.Quest)
         {
@@ -109,11 +139,10 @@ public partial class Main : Node2D
             _questionsCompleted = 0;
         }
 
-        _startTimeAttackButton.Visible = false;
-        _startQuestButton.Visible = false;
-
         LoadNextQuestion();
+        GD.Print("Starting game timer");
         _gameTimer.Start();
+        GD.Print($"Timer started, wait_time: {_gameTimer.WaitTime}");
     }
 
     private void LoadNextQuestion()
@@ -134,26 +163,16 @@ public partial class Main : Node2D
     {
         _gameTimer.Stop();
         _isGameStarted = false;
-        var sb = new StringBuilder();
-
-        if (_currentMode == GameMode.Quest)
-        {
-            sb.AppendLine("Quest Finished");
-            sb.AppendLine($"Time: {_elapsedTimeInSeconds}s");
-            sb.AppendLine($"Keys: {_totalKeyPresses}");
-        }
-        else if (_currentMode == GameMode.TimeAttack)
-        {
-            sb.AppendLine("Time Attack Finished");
-            sb.AppendLine($"Score: {_totalKeyPresses}");
-        }
-
-        _kanaLabel.Text = sb.ToString();
-        _questionLabel.Text = "";
-
-        _startTimeAttackButton.Visible = true;
-        _startQuestButton.Visible = true;
-
+        
+        int finalScore = _currentMode == GameMode.TimeAttack ? _totalKeyPresses : _elapsedTimeInSeconds;
+        GD.Print($"Game finished with score: {finalScore}");
+        
+        // スコアを保存
+        GameData.Instance?.SetScore(finalScore);
+        
+        // Control画面に戻る
+        GetTree().ChangeSceneToFile("res://assets/scense/Control.tscn");
+        
         _currentMode = GameMode.None;
     }
 
@@ -293,6 +312,12 @@ public partial class Main : Node2D
             }
         }
         UpdateDisplay();
+    }
+    
+    private void EmitGameOverSignal()
+    {
+        int finalScore = _currentMode == GameMode.TimeAttack ? _totalKeyPresses : _elapsedTimeInSeconds;
+        EmitSignal(SignalName.GameOver, finalScore);
     }
 }
 
