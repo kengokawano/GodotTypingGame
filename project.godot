@@ -15,15 +15,15 @@ run/main_scene="uid://cv5ohpdtk3k2i"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+GameData="*res://assets/codes/GameData.gd"
+
 [display]
 
 window/size/viewport_width=1200
 window/size/viewport_height=740
 window/stretch/mode="canvas_items"
-
-[autoload]
-
-GameData="*res://assets/codes/GameData.cs"
 
 [dotnet]
 

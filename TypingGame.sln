@@ -1,6 +1,6 @@
 ﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingGame", "TypingGame.csproj", "{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypingGame", "TypingGame.csproj", "{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,11 +9,11 @@ Global
 	ExportRelease|Any CPU = ExportRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
-		{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
-		{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
-		{4165D1EF-F936-4609-A3D0-8EDA9DA5BB96}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{1C717F9E-E9FD-4295-92A9-B03B11DCDB82}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
 	EndGlobalSection
 EndGlobal
