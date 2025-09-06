@@ -1,11 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://cv5ohpdtk3k2i"]
+[gd_scene load_steps=6 format=3 uid="uid://cv5ohpdtk3k2i"]
 
 [ext_resource type="Script" uid="uid://dpolr6jmmn1o8" path="res://assets/codes/ControlUI.gd" id="1_vxiwm"]
 [ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="2_vxiwm"]
+[ext_resource type="FontFile" uid="uid://b7e7qokanlr2f" path="res://assets/fonts/LINESeedJP_A_TTF_Eb.ttf" id="3_w2my6"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_nw7le"]
+font = ExtResource("3_w2my6")
+font_size = 66
 
 [sub_resource type="LabelSettings" id="LabelSettings_8kh01"]
 font = ExtResource("2_vxiwm")
-font_size = 72
+font_size = 48
 
 [node name="CanvasLayer" type="CanvasLayer"]
 script = ExtResource("1_vxiwm")
@@ -99,10 +104,15 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Label2" type="Label" parent="VBoxContainer"]
+[node name="_sep" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+label_settings = SubResource("LabelSettings_nw7le")
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 text = "TypingGame"
-label_settings = SubResource("LabelSettings_8kh01")
+label_settings = SubResource("LabelSettings_nw7le")
 horizontal_alignment = 1
 
 [node name="laScore" type="Label" parent="VBoxContainer"]
@@ -127,3 +137,18 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 32
 text = "Start"
+
+[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ModeSelection" type="VBoxContainer" parent="VBoxContainer/CenterContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="btnNormal" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection"]
+layout_mode = 2
+text = "Normal"
+
+[node name="btnTimeAttack" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection"]
+layout_mode = 2
+text = "Time Attack"

@@ -9,7 +9,7 @@ extends CanvasLayer
 @onready var mode_label: Label = $all/header/ModeLabel
 @onready var game_timer: Timer = $GameTimer
 
-enum GameMode { NONE, TIME_ATTACK, QUEST, DEBUG }
+enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 
 # UI色の設定（インスペクターで変更可能）
 @export var color_completed: String = "#ff7f7f"  # 完了した文字の色
@@ -20,11 +20,16 @@ enum GameMode { NONE, TIME_ATTACK, QUEST, DEBUG }
 @export var debug_default_start_id: int = 108    # デバッグ開始ID
 @export var debug_default_end_id: int = 108      # デバッグ終了ID
 
+# タイムアタックモード設定（インスペクターで変更可能）
+@export var time_attack_question_count: int = 30  # タイムアタック問題数
+
+# Normalモード設定（インスペクターで変更可能）
+@export var normal_time_limit: int = 10  # Normal制限時間（秒）
+
 
 var _current_mode = GameMode.NONE
 var _remaining_time_in_seconds: int = 0
 var _questions_completed: int = 0
-const TOTAL_QUEST_QUESTIONS = 5
 var _is_game_started: bool = false
 var _elapsed_time_in_seconds: int = 0
 var _combo_count: int = 0
@@ -67,8 +72,16 @@ func _ready():
 
 	if GameData and GameData.is_debug_mode:
 		start_debug_from_game_data.call_deferred()
+	elif GameData:
+		var selected_mode = GameData.get_game_mode()
+		if selected_mode == GameData.GameMode.NORMAL:
+			start_normal.call_deferred()
+		elif selected_mode == GameData.GameMode.TIME_ATTACK:
+			start_time_attack.call_deferred()
+		else:
+			start_normal.call_deferred()  # フォールバック
 	else:
-		start_time_attack.call_deferred()
+		start_normal.call_deferred()  # GameDataがない場合のフォールバック
 
 func _input(event: InputEvent):
 	print("_input called, _is_game_started: ", _is_game_started)
@@ -94,6 +107,9 @@ func load_questions():
 		fallback_q.tags = ["fallback"]
 		fallback_q.era = 2025
 		_all_questions.append(fallback_q)
+
+func start_normal():
+	start_game(GameMode.NORMAL)
 
 func start_time_attack():
 	start_game(GameMode.TIME_ATTACK)
@@ -127,9 +143,9 @@ func start_game(mode: GameMode):
 	_input_roman_index = 0
 	_candidate_romans = []
 
-	if _current_mode == GameMode.TIME_ATTACK:
-		_remaining_time_in_seconds = 10
-	elif _current_mode == GameMode.QUEST:
+	if _current_mode == GameMode.NORMAL:
+		_remaining_time_in_seconds = normal_time_limit
+	elif _current_mode == GameMode.TIME_ATTACK:
 		_elapsed_time_in_seconds = 0
 		_questions_completed = 0
 	elif _current_mode == GameMode.DEBUG:
@@ -150,6 +166,11 @@ func load_next_question():
 			finish_game()
 			return
 		question = _debug_questions[_debug_current_index]
+	elif _current_mode == GameMode.TIME_ATTACK:
+		if _questions_completed >= time_attack_question_count:
+			finish_game()
+			return
+		question = _all_questions.pick_random()
 	else:
 		question = _all_questions.pick_random()
 
@@ -163,9 +184,10 @@ func finish_game():
 	game_timer.stop()
 	_is_game_started = false
 
-	var final_score = _total_key_presses if _current_mode == GameMode.TIME_ATTACK else _elapsed_time_in_seconds
+	var final_score = _total_key_presses if _current_mode == GameMode.NORMAL else _elapsed_time_in_seconds
+	var is_time_score = _current_mode == GameMode.TIME_ATTACK
 	if GameData:
-		GameData.set_score(final_score)
+		GameData.set_score(final_score, is_time_score)
 	get_tree().change_scene_to_file("res://assets/scenes/Control.tscn")
 
 	_current_mode = GameMode.NONE
@@ -188,7 +210,7 @@ func update_display():
 		if i < _current_kana_index:
 			kana_progress_text += "[color=%s]%s[/color]" % [color_completed, _current_kana[i]]
 		elif i == _current_kana_index:
-			kana_progress_text += "[color=%s][font_size=42]%s[/font_size][/color]" % [color_current, _current_kana[i]]
+			kana_progress_text += "[color=%s][font_size=42][u]%s[/u][/font_size][/color]" % [color_current, _current_kana[i]]
 		else:
 			kana_progress_text += _current_kana[i]
 	kana_progress_label.text = kana_progress_text
@@ -201,7 +223,7 @@ func update_display():
 			var next_char = r.substr(_input_roman_index, 1) if _input_roman_index < r.length() else ""
 			var remaining = r.substr(_input_roman_index + 1) if _input_roman_index + 1 < r.length() else ""
 			if not next_char.is_empty():
-				formatted_candidates.append("[color=%s]%s[/color][color=%s]%s[/color]%s" % [color_completed, completed, color_current, next_char, remaining])
+				formatted_candidates.append("[color=%s]%s[/color][color=%s][u]%s[/u][/color]%s" % [color_completed, completed, color_current, next_char, remaining])
 			else:
 				formatted_candidates.append("[color=%s]%s[/color]" % [color_completed, completed])
 		roman_text = "   ".join(formatted_candidates)
@@ -221,32 +243,24 @@ func update_display():
 			elif not r.is_empty():
 				var first_char = r.substr(0, 1)
 				var remaining = r.substr(1) if r.length() > 1 else ""
-				formatted_romans.append("[color=%s]%s[/color]%s" % [color_current, first_char, remaining])
+				formatted_romans.append("[color=%s][u]%s[/u][/color]%s" % [color_current, first_char, remaining])
 			else:
 				formatted_romans.append(r)
 		
-		# 3個ずつ横並びにして改行
-		var result_lines = []
-		for i in range(0, formatted_romans.size(), 3):
-			var line = formatted_romans[i]
-			if i + 1 < formatted_romans.size():
-				line += "  " + formatted_romans[i + 1]
-			if i + 2 < formatted_romans.size():
-				line += "  " + formatted_romans[i + 2]
-			result_lines.append(line)
-		roman_text = "\n".join(result_lines)
+		# 1つずつ改行
+		roman_text = "\n".join(formatted_romans)
 	kana_label.text = roman_text
 	print("Setting kana_label.text to: ", roman_text)
 
 	combo_label.text = "%s" % _combo_count if _combo_count > 3 else ""
 
-	if _current_mode == GameMode.QUEST:
-		time_label.text = "%s秒経過" % _elapsed_time_in_seconds
-		score_label.text = "Q: %s/%s" % [_questions_completed + 1, TOTAL_QUEST_QUESTIONS]
-		mode_label.text = "QUEST"
-	elif _current_mode == GameMode.TIME_ATTACK:
+	if _current_mode == GameMode.NORMAL:
 		time_label.text = "%s" % _remaining_time_in_seconds
 		score_label.text = "%s" % _total_key_presses
+		mode_label.text = "NORMAL"
+	elif _current_mode == GameMode.TIME_ATTACK:
+		time_label.text = "%s/%s" % [_questions_completed + 1, time_attack_question_count]
+		score_label.text = "%s秒" % _elapsed_time_in_seconds
 		mode_label.text = "TIME ATTACK"
 	elif _current_mode == GameMode.DEBUG:
 		var current_id = _debug_questions[_debug_current_index].id if _debug_current_index < _debug_questions.size() else -1
@@ -296,11 +310,8 @@ func handle_key_press(input_char: String):
 		_combo_count += 1
 
 		if _current_kana_index >= _current_kana.size():
-			if _current_mode == GameMode.QUEST:
+			if _current_mode == GameMode.TIME_ATTACK:
 				_questions_completed += 1
-				if _questions_completed >= TOTAL_QUEST_QUESTIONS:
-					finish_game()
-					return
 			elif _current_mode == GameMode.DEBUG:
 				_questions_completed += 1
 				_debug_current_index += 1
@@ -311,9 +322,9 @@ func handle_key_press(input_char: String):
 
 
 func on_game_timer_timeout():
-	if _current_mode == GameMode.QUEST:
+	if _current_mode == GameMode.TIME_ATTACK:
 		_elapsed_time_in_seconds += 1
-	elif _current_mode == GameMode.TIME_ATTACK:
+	elif _current_mode == GameMode.NORMAL:
 		_remaining_time_in_seconds -= 1
 		if _remaining_time_in_seconds <= 0:
 			finish_game()

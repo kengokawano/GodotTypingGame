@@ -87,11 +87,11 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KanaRitch" type="RichTextLabel" parent="all"]
-custom_minimum_size = Vector2(450, 350)
+custom_minimum_size = Vector2(200, 350)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
-theme_override_constants/line_separation = -30
+theme_override_constants/line_separation = -10
 theme_override_fonts/normal_font = ExtResource("2_g1376")
 theme_override_font_sizes/normal_font_size = 42
 bbcode_enabled = true
