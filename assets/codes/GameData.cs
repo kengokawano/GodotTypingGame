@@ -16,18 +16,11 @@ public partial class GameData : Node
     {
         LastScore = score;
         HasScore = true;
-        GD.Print($"Score saved: {score}");
     }
     
-    public int GetScore()
-    {
-        return LastScore;
-    }
+    public int GetScore() => LastScore;
     
-    public bool HasValidScore()
-    {
-        return HasScore;
-    }
+    public bool HasValidScore() => HasScore;
     
     public void ClearScore()
     {

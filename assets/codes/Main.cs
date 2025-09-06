@@ -2,18 +2,12 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using TypingGame; // RomanTypingParserJp
-using TypingGame.Data; // Question, QuestionLoader
-
-//https://www.reddit.com/r/godot/comments/wg90nh/debugging_godot_4x_mono_from_vs_code/
-// debugのブレーク方法はこちら
+using TypingGame;
+using TypingGame.Data;
 
 public partial class Main : Node2D
 {
 
-    [Signal]
-    public delegate void GameOverEventHandler(int score);
 
     private Label _questionLabel;
     private Label _kanaLabel;
@@ -42,38 +36,23 @@ public partial class Main : Node2D
 
     public override void _Ready()
     {
-        GD.Print("Program started");
         try
         {
-            GD.Print("Getting nodes...");
             _questionLabel = GetNode<Label>("QuestionLabel");
             _kanaLabel = GetNode<Label>("KanaLabel");
             _statsLabel = GetNode<Label>("StatsLabel");
-
             _gameTimer = GetNode<Timer>("GameTimer");
-            GD.Print("All nodes found successfully");
 
-            GD.Print("Connecting timer signal...");
             _gameTimer.Timeout += OnGameTimerTimeout;
-
-            GD.Print("Reading JSON file...");
             RomanTypingParserJp.ReadJsonFile();
-            
-            GD.Print("Loading questions...");
             LoadQuestions();
-            
-            GD.Print("Updating display...");
             UpdateDisplay();
             
-            // ゲームを自動的に開始（少し遅延させる）
-            GD.Print("About to call StartTimeAttack deferred");
             CallDeferred(nameof(StartTimeAttack));
-            GD.Print("_Ready completed successfully");
         }
         catch (Exception ex)
         {
             GD.PrintErr($"Error in _Ready: {ex.Message}");
-            GD.PrintErr($"Stack trace: {ex.StackTrace}");
         }
     }
 
@@ -112,16 +91,13 @@ public partial class Main : Node2D
 
     public void StartTimeAttack()
     {
-        GD.Print("StartTimeAttack called");
         StartGame(GameMode.TimeAttack);
     }
     
     private void StartGame(GameMode mode)
     {
-        GD.Print($"StartGame called with mode: {mode}");
         _currentMode = mode;
         _isGameStarted = true;
-        GD.Print($"Game started, _isGameStarted: {_isGameStarted}");
 
         _comboCount = 0;
         _totalKeyPresses = 0;
@@ -140,9 +116,7 @@ public partial class Main : Node2D
         }
 
         LoadNextQuestion();
-        GD.Print("Starting game timer");
         _gameTimer.Start();
-        GD.Print($"Timer started, wait_time: {_gameTimer.WaitTime}");
     }
 
     private void LoadNextQuestion()
@@ -165,12 +139,7 @@ public partial class Main : Node2D
         _isGameStarted = false;
         
         int finalScore = _currentMode == GameMode.TimeAttack ? _totalKeyPresses : _elapsedTimeInSeconds;
-        GD.Print($"Game finished with score: {finalScore}");
-        
-        // スコアを保存
         GameData.Instance?.SetScore(finalScore);
-        
-        // Control画面に戻る
         GetTree().ChangeSceneToFile("res://assets/scense/Control.tscn");
         
         _currentMode = GameMode.None;
@@ -287,15 +256,6 @@ public partial class Main : Node2D
         UpdateDisplay();
     }
 
-    private void OnStartTimeAttackButtonPressed()
-    {
-        StartGame(GameMode.TimeAttack);
-    }
-
-    private void OnStartQuestButtonPressed()
-    {
-        StartGame(GameMode.Quest);
-    }
 
     private void OnGameTimerTimeout()
     {
@@ -314,10 +274,5 @@ public partial class Main : Node2D
         UpdateDisplay();
     }
     
-    private void EmitGameOverSignal()
-    {
-        int finalScore = _currentMode == GameMode.TimeAttack ? _totalKeyPresses : _elapsedTimeInSeconds;
-        EmitSignal(SignalName.GameOver, finalScore);
-    }
 }
 
