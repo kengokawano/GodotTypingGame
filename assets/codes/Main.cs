@@ -7,10 +7,8 @@ using TypingGame.Data;
 
 public partial class Main : Node2D
 {
-
-
     private Label _questionLabel;
-    private Label _kanaLabel;
+    private RichTextLabel _kanaLabel;
     private Label _statsLabel;
     private Timer _gameTimer;
 
@@ -39,7 +37,7 @@ public partial class Main : Node2D
         try
         {
             _questionLabel = GetNode<Label>("QuestionLabel");
-            _kanaLabel = GetNode<Label>("KanaLabel");
+            _kanaLabel = GetNode<RichTextLabel>("KanaRitch");
             _statsLabel = GetNode<Label>("StatsLabel");
             _gameTimer = GetNode<Timer>("GameTimer");
 
@@ -166,14 +164,33 @@ public partial class Main : Node2D
             var formattedCandidates = _candidateRomans.Select(r =>
             {
                 var completed = r.Substring(0, _inputRomanIndex);
-                var remaining = r.Substring(_inputRomanIndex);
-                return $"[{completed}]{remaining}";
+                var nextChar = _inputRomanIndex < r.Length ? r[_inputRomanIndex].ToString() : "";
+                var remaining = _inputRomanIndex + 1 < r.Length ? r.Substring(_inputRomanIndex + 1) : "";
+                
+                if (!string.IsNullOrEmpty(nextChar))
+                {
+                    return $"[color=#ff7f7f]{completed}[/color][color=yellow]{nextChar}[/color]{remaining}";
+                }
+                else
+                {
+                    return $"[color=#ff7f7f]{completed}[/color]";
+                }
             });
             romanText = string.Join(", ", formattedCandidates);
         }
         else
         {
-            romanText = string.Join(", ", currentRomans);
+            var formattedRomans = currentRomans.Select(r =>
+            {
+                if (r.Length > 0)
+                {
+                    var firstChar = r[0].ToString();
+                    var remaining = r.Length > 1 ? r.Substring(1) : "";
+                    return $"[color=yellow]{firstChar}[/color]{remaining}";
+                }
+                return r;
+            });
+            romanText = string.Join(", ", formattedRomans);
         }
         _kanaLabel.Text = $"{currentKana} : {romanText}";
 

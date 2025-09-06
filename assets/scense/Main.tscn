@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://blkgy3omvu03m"]
+[gd_scene load_steps=3 format=3 uid="uid://blkgy3omvu03m"]
 
 [ext_resource type="Script" uid="uid://cg0ubaipxh6ia" path="res://assets/codes/Main.cs" id="1_nxaqm"]
+[ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="2_g1376"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_nxaqm")
@@ -15,13 +16,16 @@ text = "問題文をここに表示"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="KanaLabel" type="Label" parent="."]
-offset_left = 50.0
-offset_top = 200.0
-offset_right = 1100.0
-offset_bottom = 300.0
-theme_override_font_sizes/font_size = 48
-text = "かな : roman"
+[node name="KanaRitch" type="RichTextLabel" parent="."]
+offset_left = 182.0
+offset_top = 294.0
+offset_right = 991.0
+offset_bottom = 380.0
+theme_override_fonts/normal_font = ExtResource("2_g1376")
+theme_override_font_sizes/normal_font_size = 48
+bbcode_enabled = true
+text = "ここに入力
+"
 horizontal_alignment = 1
 vertical_alignment = 1
 
