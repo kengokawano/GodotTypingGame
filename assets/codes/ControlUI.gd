@@ -12,6 +12,10 @@ extends CanvasLayer
 # GameDataシングルトンへの参照（autoloadとして設定されている想定）
 var GameData = null
 
+# デバッグモード設定（インスペクターで変更可能）
+@export var debug_default_start_id: int = 108    # デバッグ開始ID
+@export var debug_default_end_id: int = 108      # デバッグ終了ID
+
 func _ready():
 	# AutoloadされたGameDataを取得
 	if has_node("/root/GameData"):
@@ -28,6 +32,10 @@ func _ready():
 		GameData.clear_score()
 	else:
 		la_score_label.text = "スタートボタンを押してゲームを始めよう！"
+	
+	# デバッグパネルのデフォルト値を設定
+	start_id_input.text = str(debug_default_start_id)
+	end_id_input.text = str(debug_default_end_id)
 
 func on_start_button_pressed():
 	btn_start.text = "Loading..."
