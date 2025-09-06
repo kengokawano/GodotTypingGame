@@ -13,25 +13,72 @@ font_size = 52
 font = ExtResource("2_g1376")
 font_size = 46
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
 
-[node name="QuestionLabel" type="Label" parent="."]
-offset_left = 47.0
-offset_top = 171.0
-offset_right = 1097.0
-offset_bottom = 221.0
+[node name="GameTimer" type="Timer" parent="."]
+
+[node name="all" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="header" type="HBoxContainer" parent="all"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 195
+alignment = 1
+
+[node name="ModeLabel" type="Label" parent="all/header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 20
+text = "TIME ATTACK"
+horizontal_alignment = 2
+
+[node name="ScoreContainer" type="HBoxContainer" parent="all/header"]
+layout_mode = 2
+
+[node name="ScoreLabel" type="Label" parent="all/header/ScoreContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 28
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScoreTextLabel" type="Label" parent="all/header/ScoreContainer/ScoreLabel"]
+layout_mode = 2
+offset_left = -91.0
+offset_right = -4.0
+offset_bottom = 46.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 28
+text = "Score:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="_sep" type="Label" parent="all"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="QuestionLabel" type="Label" parent="all"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "問題文をここに表示"
 label_settings = SubResource("LabelSettings_fpf70")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="KanaProgressLabel" type="RichTextLabel" parent="."]
-offset_left = 50.0
-offset_top = 281.0
-offset_right = 1100.0
-offset_bottom = 351.0
+[node name="KanaProgressLabel" type="RichTextLabel" parent="all"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_g1376")
 theme_override_font_sizes/normal_font_size = 36
 bbcode_enabled = true
@@ -39,36 +86,25 @@ text = "かな進捗をここに表示"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="KanaRitch" type="RichTextLabel" parent="."]
-offset_left = 47.0
-offset_top = 386.0
-offset_right = 1097.0
-offset_bottom = 482.0
+[node name="KanaRitch" type="RichTextLabel" parent="all"]
+custom_minimum_size = Vector2(450, 350)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/line_separation = -30
 theme_override_fonts/normal_font = ExtResource("2_g1376")
-theme_override_font_sizes/normal_font_size = 48
+theme_override_font_sizes/normal_font_size = 42
 bbcode_enabled = true
 text = "ここに入力
+ここに入力
+ここに入力
+
 "
-horizontal_alignment = 1
-vertical_alignment = 1
+scroll_active = false
 
-[node name="ComboLabel" type="Label" parent="."]
-offset_left = 51.0
-offset_top = 571.0
-offset_right = 251.0
-offset_bottom = 617.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("2_g1376")
-theme_override_font_sizes/font_size = 28
-text = "ーーー"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="TimeLabel" type="Label" parent="."]
-offset_left = 421.0
-offset_top = 53.0
-offset_right = 721.0
-offset_bottom = 128.0
+[node name="TimeLabel" type="Label" parent="all"]
+layout_mode = 2
+size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_bold")
 theme_override_font_sizes/font_size = 36
@@ -77,12 +113,12 @@ label_settings = SubResource("LabelSettings_embyv")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TimeLabel" type="Label" parent="TimeLabel"]
+[node name="TimeLabel" type="Label" parent="all/TimeLabel"]
 layout_mode = 0
-offset_left = -39.0
-offset_top = 17.0
-offset_right = 64.0
-offset_bottom = 69.0
+offset_left = -150.0
+offset_top = 10.0
+offset_right = -47.0
+offset_bottom = 62.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_bold")
 theme_override_font_sizes/font_size = 36
@@ -91,27 +127,26 @@ label_settings = ExtResource("4_fpf70")
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="."]
-offset_left = 982.0
-offset_top = 27.0
-offset_right = 1182.0
-offset_bottom = 73.0
+[node name="footer" type="HBoxContainer" parent="all"]
+layout_mode = 2
+
+[node name="ComboContainer" type="HBoxContainer" parent="all/footer"]
+layout_mode = 2
+
+[node name="ComboTextLabel" type="Label" parent="all/footer/ComboContainer"]
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_g1376")
 theme_override_font_sizes/font_size = 28
-text = "Score: 0"
+text = "Combo:"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ModeLabel" type="Label" parent="."]
-offset_left = 35.0
-offset_top = 23.0
-offset_right = 235.0
-offset_bottom = 63.0
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+[node name="ComboLabel" type="Label" parent="all/footer/ComboContainer"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_g1376")
-theme_override_font_sizes/font_size = 20
-text = "TIME ATTACK"
-horizontal_alignment = 2
-
-[node name="GameTimer" type="Timer" parent="."]
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+vertical_alignment = 1

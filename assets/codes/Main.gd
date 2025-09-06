@@ -1,15 +1,25 @@
-extends Node2D
+extends CanvasLayer
 
-@onready var question_label: Label = $QuestionLabel
-@onready var kana_progress_label: RichTextLabel = $KanaProgressLabel
-@onready var kana_label: RichTextLabel = $KanaRitch
-@onready var time_label: Label = $TimeLabel
-@onready var combo_label: Label = $ComboLabel
-@onready var score_label: Label = $ScoreLabel
-@onready var mode_label: Label = $ModeLabel
+@onready var question_label: Label = $all/QuestionLabel
+@onready var kana_progress_label: RichTextLabel = $all/KanaProgressLabel
+@onready var kana_label: RichTextLabel = $all/KanaRitch
+@onready var time_label: Label = $all/TimeLabel
+@onready var combo_label: Label = $all/footer/ComboContainer/ComboLabel
+@onready var score_label: Label = $all/header/ScoreContainer/ScoreLabel
+@onready var mode_label: Label = $all/header/ModeLabel
 @onready var game_timer: Timer = $GameTimer
 
 enum GameMode { NONE, TIME_ATTACK, QUEST, DEBUG }
+
+# UI色の設定（インスペクターで変更可能）
+@export var color_completed: String = "#ff7f7f"  # 完了した文字の色
+@export var color_current: String = "yellow"     # 現在の文字の色
+@export var color_normal: String = "white"       # 通常の文字の色
+
+# デバッグモード設定（インスペクターで変更可能）
+@export var debug_default_start_id: int = 108    # デバッグ開始ID
+@export var debug_default_end_id: int = 108      # デバッグ終了ID
+
 
 var _current_mode = GameMode.NONE
 var _remaining_time_in_seconds: int = 0
@@ -61,6 +71,7 @@ func _ready():
 		start_time_attack.call_deferred()
 
 func _input(event: InputEvent):
+	print("_input called, _is_game_started: ", _is_game_started)
 	if not _is_game_started: return
 
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -90,10 +101,7 @@ func start_debug_mode(start_id: int, end_id: int):
 	_debug_end_id = end_id
 	_debug_current_index = 0
 
-	_debug_questions = []
-	for q in _all_questions:
-		if q.id >= start_id and q.id <= end_id:
-			_debug_questions.append(q)
+	_debug_questions = _all_questions.filter(func(q): return q.id >= start_id and q.id <= end_id)
 	_debug_questions.sort_custom(func(a, b): return a.id < b.id)
 
 	if _debug_questions.is_empty():
@@ -176,9 +184,9 @@ func update_display():
 	var kana_progress_text = ""
 	for i in range(_current_kana.size()):
 		if i < _current_kana_index:
-			kana_progress_text += "[color=#ff7f7f]%s[/color]" % _current_kana[i]
+			kana_progress_text += "[color=%s]%s[/color]" % [color_completed, _current_kana[i]]
 		elif i == _current_kana_index:
-			kana_progress_text += "[color=blue][font_size=42]%s[/font_size][/color]" % _current_kana[i]
+			kana_progress_text += "[color=%s][font_size=42]%s[/font_size][/color]" % [color_current, _current_kana[i]]
 		else:
 			kana_progress_text += _current_kana[i]
 	kana_progress_label.text = kana_progress_text
@@ -191,9 +199,9 @@ func update_display():
 			var next_char = r.substr(_input_roman_index, 1) if _input_roman_index < r.length() else ""
 			var remaining = r.substr(_input_roman_index + 1) if _input_roman_index + 1 < r.length() else ""
 			if not next_char.is_empty():
-				formatted_candidates.append("[color=#ff7f7f]%s[/color][color=yellow]%s[/color]%s" % [completed, next_char, remaining])
+				formatted_candidates.append("[color=%s]%s[/color][color=%s]%s[/color]%s" % [color_completed, completed, color_current, next_char, remaining])
 			else:
-				formatted_candidates.append("[color=#ff7f7f]%s[/color]" % completed)
+				formatted_candidates.append("[color=%s]%s[/color]" % [color_completed, completed])
 		roman_text = "   ".join(formatted_candidates)
 	else:
 		var current_romans = _current_roman[_current_kana_index] if _current_roman.size() > _current_kana_index else []
@@ -202,13 +210,22 @@ func update_display():
 			if not r.is_empty():
 				var first_char = r.substr(0, 1)
 				var remaining = r.substr(1) if r.length() > 1 else ""
-				formatted_romans.append("[color=yellow]%s[/color]%s" % [first_char, remaining])
+				formatted_romans.append("[color=%s]%s[/color]%s" % [color_current, first_char, remaining])
 			else:
 				formatted_romans.append(r)
-		roman_text = "   ".join(formatted_romans)
+		
+		# 2個ずつ横並びにして改行
+		var result_lines = []
+		for i in range(0, formatted_romans.size(), 2):
+			var line = formatted_romans[i]
+			if i + 1 < formatted_romans.size():
+				line += "  " + formatted_romans[i + 1]  # 2個目があれば横に並べる
+			result_lines.append(line)
+		roman_text = "\n".join(result_lines)
 	kana_label.text = roman_text
+	print("Setting kana_label.text to: ", roman_text)
 
-	combo_label.text = "%sコンボ" % _combo_count if _combo_count > 3 else ""
+	combo_label.text = "%s" % _combo_count if _combo_count > 3 else ""
 
 	if _current_mode == GameMode.QUEST:
 		time_label.text = "%s秒経過" % _elapsed_time_in_seconds
@@ -216,7 +233,7 @@ func update_display():
 		mode_label.text = "QUEST"
 	elif _current_mode == GameMode.TIME_ATTACK:
 		time_label.text = "%s" % _remaining_time_in_seconds
-		score_label.text = "Score: %s" % _total_key_presses
+		score_label.text = "%s" % _total_key_presses
 		mode_label.text = "TIME ATTACK"
 	elif _current_mode == GameMode.DEBUG:
 		var current_id = _debug_questions[_debug_current_index].id if _debug_current_index < _debug_questions.size() else -1
@@ -241,10 +258,7 @@ func handle_key_press(input_char: String):
 		else:
 			_combo_count = 0
 	else:
-		var next_candidates = []
-		for r in _candidate_romans:
-			if r.length() > _input_roman_index and r[_input_roman_index] == input_char:
-				next_candidates.append(r)
+		var next_candidates = _candidate_romans.filter(func(r): return r.length() > _input_roman_index and r[_input_roman_index] == input_char)
 		
 		if not next_candidates.is_empty():
 			_candidate_romans = next_candidates
@@ -281,6 +295,7 @@ func handle_key_press(input_char: String):
 			return
 
 	update_display()
+
 
 func on_game_timer_timeout():
 	if _current_mode == GameMode.QUEST:
