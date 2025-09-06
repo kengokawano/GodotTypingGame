@@ -6,6 +6,11 @@ public partial class GameData : Node
     
     public int LastScore { get; set; } = 0;
     public bool HasScore { get; set; } = false;
+    
+    // デバッグモード用
+    public int DebugStartId { get; set; } = 0;
+    public int DebugEndId { get; set; } = 0;
+    public bool IsDebugMode { get; set; } = false;
 
     public override void _Ready()
     {
@@ -26,5 +31,19 @@ public partial class GameData : Node
     {
         HasScore = false;
         LastScore = 0;
+    }
+    
+    public void SetDebugMode(int startId, int endId)
+    {
+        DebugStartId = startId;
+        DebugEndId = endId;
+        IsDebugMode = true;
+    }
+    
+    public void ClearDebugMode()
+    {
+        IsDebugMode = false;
+        DebugStartId = 0;
+        DebugEndId = 0;
     }
 }

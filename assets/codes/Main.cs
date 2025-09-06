@@ -8,11 +8,15 @@ using TypingGame.Data;
 public partial class Main : Node2D
 {
     private Label _questionLabel;
+    private RichTextLabel _kanaProgressLabel;
     private RichTextLabel _kanaLabel;
-    private Label _statsLabel;
+    private Label _timeLabel;
+    private Label _comboLabel;
+    private Label _scoreLabel;
+    private Label _modeLabel;
     private Timer _gameTimer;
 
-    public enum GameMode { None, TimeAttack, Quest }
+    public enum GameMode { None, TimeAttack, Quest, Debug }
 
     private GameMode _currentMode = GameMode.None;
     private int _remainingTimeInSeconds = 0;
@@ -31,14 +35,24 @@ public partial class Main : Node2D
     private int _currentKanaIndex = 0;
     private List<string> _candidateRomans;
     private int _inputRomanIndex = 0;
+    
+    // デバッグモード用
+    private List<Question> _debugQuestions;
+    private int _debugStartId = 0;
+    private int _debugEndId = 0;
+    private int _debugCurrentIndex = 0;
 
     public override void _Ready()
     {
         try
         {
             _questionLabel = GetNode<Label>("QuestionLabel");
+            _kanaProgressLabel = GetNode<RichTextLabel>("KanaProgressLabel");
             _kanaLabel = GetNode<RichTextLabel>("KanaRitch");
-            _statsLabel = GetNode<Label>("StatsLabel");
+            _timeLabel = GetNode<Label>("TimeLabel");
+            _comboLabel = GetNode<Label>("ComboLabel");
+            _scoreLabel = GetNode<Label>("ScoreLabel");
+            _modeLabel = GetNode<Label>("ModeLabel");
             _gameTimer = GetNode<Timer>("GameTimer");
 
             _gameTimer.Timeout += OnGameTimerTimeout;
@@ -46,7 +60,15 @@ public partial class Main : Node2D
             LoadQuestions();
             UpdateDisplay();
             
-            CallDeferred(nameof(StartTimeAttack));
+            // デバッグモードチェック
+            if (GameData.Instance?.IsDebugMode == true)
+            {
+                CallDeferred(nameof(StartDebugFromGameData));
+            }
+            else
+            {
+                CallDeferred(nameof(StartTimeAttack));
+            }
         }
         catch (Exception ex)
         {
@@ -92,6 +114,36 @@ public partial class Main : Node2D
         StartGame(GameMode.TimeAttack);
     }
     
+    public void StartDebugMode(int startId, int endId)
+    {
+        _debugStartId = startId;
+        _debugEndId = endId;
+        _debugCurrentIndex = 0;
+        
+        // 指定範囲の問題を抽出
+        _debugQuestions = _allQuestions
+            .Where(q => q.id >= startId && q.id <= endId)
+            .OrderBy(q => q.id)
+            .ToList();
+            
+        if (_debugQuestions.Count == 0)
+        {
+            GD.PrintErr($"No questions found in range {startId}-{endId}");
+            return;
+        }
+        
+        StartGame(GameMode.Debug);
+    }
+    
+    private void StartDebugFromGameData()
+    {
+        if (GameData.Instance != null)
+        {
+            StartDebugMode(GameData.Instance.DebugStartId, GameData.Instance.DebugEndId);
+            GameData.Instance.ClearDebugMode();
+        }
+    }
+    
     private void StartGame(GameMode mode)
     {
         _currentMode = mode;
@@ -112,6 +164,11 @@ public partial class Main : Node2D
             _elapsedTimeInSeconds = 0;
             _questionsCompleted = 0;
         }
+        else if (_currentMode == GameMode.Debug)
+        {
+            _elapsedTimeInSeconds = 0;
+            _questionsCompleted = 0;
+        }
 
         LoadNextQuestion();
         _gameTimer.Start();
@@ -123,11 +180,23 @@ public partial class Main : Node2D
         _inputRomanIndex = 0;
         _candidateRomans = null;
 
-        var question = _allQuestions[_random.Next(_allQuestions.Count)];
+        Question question;
+        if (_currentMode == GameMode.Debug)
+        {
+            if (_debugCurrentIndex >= _debugQuestions.Count)
+            {
+                FinishGame();
+                return;
+            }
+            question = _debugQuestions[_debugCurrentIndex];
+        }
+        else
+        {
+            question = _allQuestions[_random.Next(_allQuestions.Count)];
+        }
+        
         _currentQuestionText = question.text;
-
         (_currentKana, _currentRoman) = RomanTypingParserJp.ConstructTypeSentence(question.kana);
-
         UpdateDisplay();
     }
 
@@ -147,14 +216,42 @@ public partial class Main : Node2D
     {
         if (!_isGameStarted)
         {
-            _kanaLabel.Text = "Press a button to start";
             _questionLabel.Text = "Typing Game";
-            _statsLabel.Text = "";
+            _kanaProgressLabel.Text = "";
+            _kanaLabel.Text = "Press a button to start";
+            _timeLabel.Text = "";
+            _comboLabel.Text = "";
+            _scoreLabel.Text = "";
+            _modeLabel.Text = "READY";
             return;
         }
 
+        // 1行目: 問題文（漢字あり）
         _questionLabel.Text = _currentQuestionText;
+        
+        // 2行目: かな全体の進捗表示
+        var kanaProgressText = "";
+        for (int i = 0; i < _currentKana.Count; i++)
+        {
+            if (i < _currentKanaIndex)
+            {
+                // 完了済み（赤色）
+                kanaProgressText += $"[color=#ff7f7f]{_currentKana[i]}[/color]";
+            }
+            else if (i == _currentKanaIndex)
+            {
+                // 現在入力中（青色で大きく）
+                kanaProgressText += $"[color=blue][font_size=42]{_currentKana[i]}[/font_size][/color]";
+            }
+            else
+            {
+                // 未入力（通常色）
+                kanaProgressText += _currentKana[i];
+            }
+        }
+        _kanaProgressLabel.Text = kanaProgressText;
 
+        // 3行目: 入力すべきキー表示
         var currentKana = _currentKana.Count > _currentKanaIndex ? _currentKana[_currentKanaIndex] : "";
         var currentRomans = _currentRoman.Count > _currentKanaIndex ? _currentRoman[_currentKanaIndex] : new List<string>();
         string romanText;
@@ -176,7 +273,7 @@ public partial class Main : Node2D
                     return $"[color=#ff7f7f]{completed}[/color]";
                 }
             });
-            romanText = string.Join(", ", formattedCandidates);
+            romanText = string.Join("   ", formattedCandidates);
         }
         else
         {
@@ -190,20 +287,40 @@ public partial class Main : Node2D
                 }
                 return r;
             });
-            romanText = string.Join(", ", formattedRomans);
+            romanText = string.Join("   ", formattedRomans);
         }
-        _kanaLabel.Text = $"{currentKana} : {romanText}";
+        _kanaLabel.Text = romanText;
 
-        string statsText = "";
+        // コンボ表示（3コンボ以下なら非表示）
+        if (_comboCount > 3)
+        {
+            _comboLabel.Text = $"{_comboCount}コンボ";
+        }
+        else
+        {
+            _comboLabel.Text = "";
+        }
+
+        // モード別表示
         if (_currentMode == GameMode.Quest)
         {
-            statsText = $"Time: {_elapsedTimeInSeconds}s | Combo: {_comboCount} | Q: {_questionsCompleted + 1}/{TotalQuestQuestions}";
+            _timeLabel.Text = $"{_elapsedTimeInSeconds}秒経過";
+            _scoreLabel.Text = $"Q: {_questionsCompleted + 1}/{TotalQuestQuestions}";
+            _modeLabel.Text = "QUEST";
         }
         else if (_currentMode == GameMode.TimeAttack)
         {
-            statsText = $"Time Left: {_remainingTimeInSeconds}s | Combo: {_comboCount} | Score: {_totalKeyPresses}";
+            _timeLabel.Text = $"{_remainingTimeInSeconds}";
+            _scoreLabel.Text = $"Score: {_totalKeyPresses}";
+            _modeLabel.Text = "TIME ATTACK";
         }
-        _statsLabel.Text = statsText;
+        else if (_currentMode == GameMode.Debug)
+        {
+            var currentId = _debugCurrentIndex < _debugQuestions.Count ? _debugQuestions[_debugCurrentIndex].id : -1;
+            _timeLabel.Text = $"ID: {currentId}";
+            _scoreLabel.Text = $"{_questionsCompleted}/{_debugQuestions.Count}";
+            _modeLabel.Text = $"DEBUG ({_debugStartId}-{_debugEndId})";
+        }
     }
 
     private void HandleKeyPress(string inputChar)
@@ -264,6 +381,11 @@ public partial class Main : Node2D
                         FinishGame();
                         return;
                     }
+                }
+                else if (_currentMode == GameMode.Debug)
+                {
+                    _questionsCompleted++;
+                    _debugCurrentIndex++;
                 }
                 LoadNextQuestion();
                 return;

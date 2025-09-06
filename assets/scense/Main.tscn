@@ -1,26 +1,49 @@
-[gd_scene load_steps=3 format=3 uid="uid://blkgy3omvu03m"]
+[gd_scene load_steps=7 format=3 uid="uid://blkgy3omvu03m"]
 
 [ext_resource type="Script" uid="uid://cg0ubaipxh6ia" path="res://assets/codes/Main.cs" id="1_nxaqm"]
 [ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="2_g1376"]
+[ext_resource type="FontFile" uid="uid://bq285wwufxwh4" path="res://assets/fonts/LINESeedJP_A_TTF_Bd.ttf" id="3_bold"]
+[ext_resource type="LabelSettings" uid="uid://dvc1bemphlw4o" path="res://time_font.tres" id="4_fpf70"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_fpf70"]
+font = ExtResource("2_g1376")
+font_size = 52
+
+[sub_resource type="LabelSettings" id="LabelSettings_embyv"]
+font = ExtResource("2_g1376")
+font_size = 46
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_nxaqm")
 
 [node name="QuestionLabel" type="Label" parent="."]
-offset_left = 50.0
-offset_top = 100.0
-offset_right = 1100.0
-offset_bottom = 150.0
+offset_left = 47.0
+offset_top = 171.0
+offset_right = 1097.0
+offset_bottom = 221.0
 theme_override_font_sizes/font_size = 32
 text = "問題文をここに表示"
+label_settings = SubResource("LabelSettings_fpf70")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="KanaProgressLabel" type="RichTextLabel" parent="."]
+offset_left = 50.0
+offset_top = 281.0
+offset_right = 1100.0
+offset_bottom = 351.0
+theme_override_fonts/normal_font = ExtResource("2_g1376")
+theme_override_font_sizes/normal_font_size = 36
+bbcode_enabled = true
+text = "かな進捗をここに表示"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KanaRitch" type="RichTextLabel" parent="."]
-offset_left = 182.0
-offset_top = 294.0
-offset_right = 991.0
-offset_bottom = 380.0
+offset_left = 47.0
+offset_top = 386.0
+offset_right = 1097.0
+offset_bottom = 482.0
 theme_override_fonts/normal_font = ExtResource("2_g1376")
 theme_override_font_sizes/normal_font_size = 48
 bbcode_enabled = true
@@ -29,14 +52,65 @@ text = "ここに入力
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StatsLabel" type="Label" parent="."]
-offset_left = 50.0
-offset_top = 400.0
-offset_right = 1100.0
-offset_bottom = 450.0
-theme_override_font_sizes/font_size = 24
-text = "スコアや時間を表示"
+[node name="ComboLabel" type="Label" parent="."]
+offset_left = 51.0
+offset_top = 571.0
+offset_right = 251.0
+offset_bottom = 617.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 28
+text = "ーーー"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="."]
+offset_left = 421.0
+offset_top = 53.0
+offset_right = 721.0
+offset_bottom = 128.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_bold")
+theme_override_font_sizes/font_size = 36
+text = "XXX"
+label_settings = SubResource("LabelSettings_embyv")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="TimeLabel"]
+offset_left = -39.0
+offset_top = 17.0
+offset_right = 64.0
+offset_bottom = 69.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_bold")
+theme_override_font_sizes/font_size = 36
+text = "残り"
+label_settings = ExtResource("4_fpf70")
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="."]
+offset_left = 982.0
+offset_top = 27.0
+offset_right = 1182.0
+offset_bottom = 73.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 28
+text = "Score: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ModeLabel" type="Label" parent="."]
+offset_left = 35.0
+offset_top = 23.0
+offset_right = 235.0
+offset_bottom = 63.0
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 20
+text = "TIME ATTACK"
+horizontal_alignment = 2
 
 [node name="GameTimer" type="Timer" parent="."]
