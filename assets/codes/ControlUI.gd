@@ -39,7 +39,7 @@ func _ready():
 
 func on_start_button_pressed():
 	btn_start.text = "Loading..."
-	get_tree().change_scene_to_file("res://assets/scense/Main.tscn")
+	get_tree().change_scene_to_file("res://assets/scenes/Main.tscn")
 
 func on_debug_toggle_pressed():
 	debug_panel.visible = not debug_panel.visible
@@ -56,7 +56,7 @@ func on_debug_start_pressed():
 			if GameData:
 				GameData.set_debug_mode(start_id, end_id)
 			btn_debug_start.text = "Loading..."
-			get_tree().change_scene_to_file("res://assets/scense/Main.tscn")
+			get_tree().change_scene_to_file("res://assets/scenes/Main.tscn")
 		else:
 			printerr("Start ID must be less than or equal to End ID")
 	else:

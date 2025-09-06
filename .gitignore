@@ -9,6 +9,7 @@
 # Mono/.NET files for Godot C# projects
 # This folder contains intermediate files from the C# build process
 .mono/
+web/
 
 # C# / .NET build artifacts
 bin/

@@ -75,12 +75,14 @@ func _input(event: InputEvent):
 	if not _is_game_started: return
 
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		var input_char = OS.get_keycode_string(event.keycode).to_lower()
-		if input_char in ["minus", "hyphen", "kp_subtract"]:
-			input_char = "-"
-
-		if input_char.length() == 1:
+		if event.unicode != 0:
+			var input_char = char(event.unicode)
 			handle_key_press(input_char)
+		else:
+			# Handle special keys that don't have a unicode representation
+			var key_string = OS.get_keycode_string(event.keycode).to_lower()
+			if key_string in ["minus", "hyphen", "kp_subtract"]:
+				handle_key_press("-")
 
 func load_questions():
 	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
@@ -164,7 +166,7 @@ func finish_game():
 	var final_score = _total_key_presses if _current_mode == GameMode.TIME_ATTACK else _elapsed_time_in_seconds
 	if GameData:
 		GameData.set_score(final_score)
-	get_tree().change_scene_to_file("res://assets/scense/Control.tscn")
+	get_tree().change_scene_to_file("res://assets/scenes/Control.tscn")
 
 	_current_mode = GameMode.NONE
 
@@ -204,22 +206,33 @@ func update_display():
 				formatted_candidates.append("[color=%s]%s[/color]" % [color_completed, completed])
 		roman_text = "   ".join(formatted_candidates)
 	else:
-		var current_romans = _current_roman[_current_kana_index] if _current_roman.size() > _current_kana_index else []
+		var all_romans = _current_roman[_current_kana_index] if _current_roman.size() > _current_kana_index else []
+		var current_romans = []
+		if all_romans.size() > 4:
+			current_romans = all_romans.slice(0, 4)
+			current_romans.append("...")
+		else:
+			current_romans = all_romans
+		
 		var formatted_romans = []
 		for r in current_romans:
-			if not r.is_empty():
+			if r == "...":
+				formatted_romans.append("...")
+			elif not r.is_empty():
 				var first_char = r.substr(0, 1)
 				var remaining = r.substr(1) if r.length() > 1 else ""
 				formatted_romans.append("[color=%s]%s[/color]%s" % [color_current, first_char, remaining])
 			else:
 				formatted_romans.append(r)
 		
-		# 2個ずつ横並びにして改行
+		# 3個ずつ横並びにして改行
 		var result_lines = []
-		for i in range(0, formatted_romans.size(), 2):
+		for i in range(0, formatted_romans.size(), 3):
 			var line = formatted_romans[i]
 			if i + 1 < formatted_romans.size():
-				line += "  " + formatted_romans[i + 1]  # 2個目があれば横に並べる
+				line += "  " + formatted_romans[i + 1]
+			if i + 2 < formatted_romans.size():
+				line += "  " + formatted_romans[i + 2]
 			result_lines.append(line)
 		roman_text = "\n".join(result_lines)
 	kana_label.text = roman_text

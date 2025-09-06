@@ -9,7 +9,7 @@
 ```ini
 [application]
 config/name="TypingGame"
-run/main_scene="res://assets/scense/Control.tscn"
+run/main_scene="res://assets/scenes/Control.tscn"
 
 [mono]
 project/assembly_name="TypingGame"
@@ -143,7 +143,7 @@ var arr = new Godot.Collections.Array<string>();
 ```
 assets/
   codes/
-  scense/
+  scenes/
   fonts/
   data/
 ```

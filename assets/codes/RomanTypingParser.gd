@@ -61,8 +61,9 @@ func construct_type_sentence(sentence_hiragana: String) -> Array:
             idx += 1
             parsed_str.append(uni)
         else:
-            printerr("Error: Unsupported n-gram / uni-gram => ", uni, ", bi-gram => ", bi, ", tri-gram => ", tri)
-            return [[], []]
+            valid_type_list = [uni]
+            idx += 1
+            parsed_str.append(uni)
 
         judge.append(valid_type_list)
 
