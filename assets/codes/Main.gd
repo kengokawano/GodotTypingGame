@@ -31,10 +31,6 @@ enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 # Normalモード設定（インスペクターで変更可能）
 @export var normal_time_limit: int = 10  # Normal制限時間（秒）
 
-# コンボパーティクル設定（インスペクターで変更可能）
-@export_range(1, 20, 1) var combo_particle_interval: int = 5  # パーティクル発動のコンボ間隔（1-20）
-
-
 var _current_mode = GameMode.NONE
 var _remaining_time_in_seconds: int = 0
 var _questions_completed: int = 0
@@ -92,7 +88,6 @@ func _ready():
 		start_normal.call_deferred()  # GameDataがない場合のフォールバック
 
 func _input(event: InputEvent):
-	print("_input called, _is_game_started: ", _is_game_started)
 	if not _is_game_started: return
 
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -269,7 +264,6 @@ func update_display():
 		# 1つずつ改行
 		roman_text = "\n".join(formatted_romans)
 	kana_label.text = roman_text
-	print("Setting kana_label.text to: ", roman_text)
 
 	# コンボが3以上の時だけ表示
 	if _combo_count >= 3:
@@ -307,6 +301,9 @@ func handle_key_press(input_char: String):
 				_candidate_romans.append(r)
 		if not _candidate_romans.is_empty():
 			_input_roman_index = 1
+			# 正確なキー入力時に音声を再生
+			if correct_key_audio and GameData and GameData.is_se_enabled():
+				correct_key_audio.play()
 		else:
 			_combo_count = 0
 	else:
@@ -315,6 +312,9 @@ func handle_key_press(input_char: String):
 		if not next_candidates.is_empty():
 			_candidate_romans = next_candidates
 			_input_roman_index += 1
+			# 正確なキー入力時に音声を再生
+			if correct_key_audio and GameData and GameData.is_se_enabled():
+				correct_key_audio.play()
 		else:
 			_input_roman_index = 0
 			_candidate_romans = []
@@ -334,13 +334,8 @@ func handle_key_press(input_char: String):
 		_candidate_romans = []
 		_combo_count += 1
 		
-		# 正確な入力時に音声を再生
-		if correct_key_audio and GameData and GameData.is_se_enabled():
-			correct_key_audio.play()
-		
 		# コンボパーティクルの発動チェック（3回以上から毎回）
 		if _combo_count >= 3:
-			print("Combo particles triggered! Combo count: ", _combo_count)
 			trigger_combo_particles()
 
 		if _current_kana_index >= _current_kana.size():
@@ -356,8 +351,6 @@ func handle_key_press(input_char: String):
 
 
 func trigger_combo_particles():
-	print("trigger_combo_particles called")
-	
 	# パステルカラー5種類
 	var colors = [
 		Color(1, 0.8, 0.9, 1),      # パステルピンク
@@ -370,21 +363,15 @@ func trigger_combo_particles():
 	
 	# ComboLabelのパーティクル
 	if combo_particles:
-		print("combo_particles node found, triggering particles")
 		combo_particles.color = selected_color
 		combo_particles.emitting = true
 		combo_particles.restart()
-	else:
-		print("combo_particles node not found!")
 	
 	# ComboTextLabelのパーティクル（同じ色）
 	if combo_text_particles:
-		print("combo_text_particles node found, triggering particles")
 		combo_text_particles.color = selected_color
 		combo_text_particles.emitting = true
 		combo_text_particles.restart()
-	else:
-		print("combo_text_particles node not found!")
 
 func on_game_timer_timeout():
 	if _current_mode == GameMode.TIME_ATTACK:
