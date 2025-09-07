@@ -31,6 +31,9 @@ enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 # Normalモード設定（インスペクターで変更可能）
 @export var normal_time_limit: int = 10  # Normal制限時間（秒）
 
+# アニメーション設定（インスペクターで変更可能）
+@export var available_animations: Array[String] = ["act1", "dash"]
+
 var _current_mode = GameMode.NONE
 var _remaining_time_in_seconds: int = 0
 var _questions_completed: int = 0
@@ -58,6 +61,9 @@ var GameData = null
 var RomanTypingParser = null
 const QuestionLoader = preload("res://assets/codes/QuestionLoader.gd")
 
+# アニメーション管理用
+var _cached_animation_count: int = 0
+
 func _ready():
 	# Autoloadされたシングルトンを取得
 	if has_node("/root/GameData"):
@@ -73,6 +79,10 @@ func _ready():
 	RomanTypingParser.read_json_file()
 	load_questions()
 	update_display()
+	
+	# アニメーション設定をキャッシュ
+	validate_animations()
+	_cached_animation_count = available_animations.size()
 
 	if GameData and GameData.is_debug_mode:
 		start_debug_from_game_data.call_deferred()
@@ -159,10 +169,7 @@ func start_game(mode: GameMode):
 	game_timer.start()
 	
 	# プレイヤーアニメーション開始（ランダム選択）
-	if player_animation:
-		var animations = ["act1", "dash"]
-		var random_animation = animations[randi() % animations.size()]
-		player_animation.play(random_animation)
+	play_random_animation()
 
 func load_next_question():
 	_current_kana_index = 0
@@ -372,6 +379,32 @@ func trigger_combo_particles():
 		combo_text_particles.color = selected_color
 		combo_text_particles.emitting = true
 		combo_text_particles.restart()
+
+func validate_animations():
+	if not player_animation:
+		return
+	
+	var sprite_frames = player_animation.sprite_frames
+	if not sprite_frames:
+		return
+	
+	# 存在しないアニメーションを削除
+	var valid_animations: Array[String] = []
+	for anim_name in available_animations:
+		if sprite_frames.has_animation(anim_name):
+			valid_animations.append(anim_name)
+		else:
+			printerr("Animation '%s' not found in sprite frames" % anim_name)
+	
+	available_animations = valid_animations
+
+func play_random_animation():
+	if not player_animation or _cached_animation_count == 0:
+		return
+	
+	var random_index = randi() % _cached_animation_count
+	var selected_animation = available_animations[random_index]
+	player_animation.play(selected_animation)
 
 func on_game_timer_timeout():
 	if _current_mode == GameMode.TIME_ATTACK:
