@@ -1354,6 +1354,7 @@ colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 [node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
 time_attack_question_count = 5
+normal_time_limit = 30
 
 [node name="Background" type="Control" parent="."]
 z_index = -100
@@ -1448,7 +1449,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KanaProgressLabel" type="RichTextLabel" parent="all"]
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_g1376")
 theme_override_font_sizes/normal_font_size = 36

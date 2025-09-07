@@ -33,30 +33,47 @@ func _ready():
 	# AutoloadされたGameDataを取得
 	if has_node("/root/GameData"):
 		GameData = get_node("/root/GameData")
+	
+	# ノード参照の確認とデバッグ出力
+	print("ControlUI Debug Info:")
+	print("btn_start: ", btn_start)
+	print("btn_debug_toggle: ", btn_debug_toggle)
+	print("btn_debug_start: ", btn_debug_start)
+	print("btn_debug_close: ", btn_debug_close)
+	print("start_id_input: ", start_id_input)
+	print("end_id_input: ", end_id_input)
 
-	btn_start.pressed.connect(on_start_button_pressed)
-	btn_debug_toggle.pressed.connect(on_debug_toggle_pressed)
-	btn_debug_start.pressed.connect(on_debug_start_pressed)
-	btn_debug_close.pressed.connect(on_debug_close_pressed)
+	if btn_start:
+		btn_start.pressed.connect(on_start_button_pressed)
+	if btn_debug_toggle:
+		btn_debug_toggle.pressed.connect(on_debug_toggle_pressed)
+	if btn_debug_start:
+		btn_debug_start.pressed.connect(on_debug_start_pressed)
+	if btn_debug_close:
+		btn_debug_close.pressed.connect(on_debug_close_pressed)
 	
 	# モード選択ボタンの設定
-	btn_normal.button_group = mode_button_group
-	btn_time_attack.button_group = mode_button_group
-	btn_normal.button_pressed = true  # デフォルトでNormalを選択
+	if btn_normal and btn_time_attack:
+		btn_normal.button_group = mode_button_group
+		btn_time_attack.button_group = mode_button_group
+		btn_normal.button_pressed = true  # デフォルトでNormalを選択
+		btn_normal.toggled.connect(on_mode_selected)
+		btn_time_attack.toggled.connect(on_mode_selected)
 	
-	btn_normal.toggled.connect(on_mode_selected)
-	btn_time_attack.toggled.connect(on_mode_selected)
-	btn_se_enabled.toggled.connect(on_se_toggled)
-	btn_ranking_register.pressed.connect(on_ranking_register_pressed)
-	btn_ranking_close.pressed.connect(on_ranking_close_pressed)
+	if btn_se_enabled:
+		btn_se_enabled.toggled.connect(on_se_toggled)
+	if btn_ranking_register:
+		btn_ranking_register.pressed.connect(on_ranking_register_pressed)
+	if btn_ranking_close:
+		btn_ranking_close.pressed.connect(on_ranking_close_pressed)
 	
 	# ボタンテキストをリセット（Loading状態から復帰）
-	btn_start.text = "Start"
-	btn_debug_start.text = "Debug Start"
-	
-	# ボタンを有効化
-	btn_start.disabled = false
-	btn_debug_start.disabled = false
+	if btn_start:
+		btn_start.text = "Start"
+		btn_start.disabled = false
+	if btn_debug_start:
+		btn_debug_start.text = "Debug Start"
+		btn_debug_start.disabled = false
 
 	if GameData and GameData.has_valid_score():
 		var score = GameData.get_score()
@@ -68,11 +85,17 @@ func _ready():
 	
 	
 	# デバッグパネルのデフォルト値を設定
-	start_id_input.text = str(debug_default_start_id)
-	end_id_input.text = str(debug_default_end_id)
+	if start_id_input:
+		start_id_input.text = str(debug_default_start_id)
+		start_id_input.text_changed.connect(on_start_id_changed)
+		print("StartIdInput editable: ", start_id_input.editable)
+	if end_id_input:
+		end_id_input.text = str(debug_default_end_id)
+		end_id_input.text_changed.connect(on_end_id_changed)
+		print("EndIdInput editable: ", end_id_input.editable)
 	
 	# SE設定の初期化
-	if GameData:
+	if GameData and btn_se_enabled:
 		btn_se_enabled.button_pressed = GameData.is_se_enabled()
 		update_se_button_text()
 	
@@ -87,21 +110,34 @@ func _ready():
 		GameData.clear_score()
 
 func on_start_button_pressed():
+	print("Start button pressed!")
 	# 選択されたモードとSE設定をGameDataに保存
-	if GameData:
+	if GameData and btn_normal and btn_time_attack and btn_se_enabled:
 		if btn_normal.button_pressed:
 			GameData.set_game_mode(GameData.GameMode.NORMAL)
 		elif btn_time_attack.button_pressed:
 			GameData.set_game_mode(GameData.GameMode.TIME_ATTACK)
 		GameData.set_se_enabled(btn_se_enabled.button_pressed)
 	
-	btn_start.text = "Loading..."
+	if btn_start:
+		btn_start.text = "Loading..."
 	get_tree().change_scene_to_file("res://assets/scenes/Main.tscn")
 
 func on_debug_toggle_pressed():
-	debug_panel.visible = not debug_panel.visible
+	print("Debug toggle pressed!")
+	if debug_panel:
+		debug_panel.visible = not debug_panel.visible
+		# デバッグパネルを開いた時にStartIdInputにフォーカスを設定
+		if debug_panel.visible and start_id_input:
+			start_id_input.grab_focus()
+			start_id_input.select_all()
 
 func on_debug_start_pressed():
+	print("Debug start pressed!")
+	if not start_id_input or not end_id_input:
+		printerr("Debug input fields not found")
+		return
+		
 	var start_text = start_id_input.text
 	var end_text = end_id_input.text
 
@@ -112,7 +148,8 @@ func on_debug_start_pressed():
 		if start_id <= end_id:
 			if GameData:
 				GameData.set_debug_mode(start_id, end_id)
-			btn_debug_start.text = "Loading..."
+			if btn_debug_start:
+				btn_debug_start.text = "Loading..."
 			get_tree().change_scene_to_file("res://assets/scenes/Main.tscn")
 		else:
 			printerr("Start ID must be less than or equal to End ID")
@@ -120,7 +157,9 @@ func on_debug_start_pressed():
 		printerr("Please enter valid numbers for Start ID and End ID")
 
 func on_debug_close_pressed():
-	debug_panel.visible = false
+	print("Debug close pressed!")
+	if debug_panel:
+		debug_panel.visible = false
 
 func on_mode_selected(_button_pressed: bool):
 	# ボタンが押された時の処理（必要に応じて追加）
@@ -130,10 +169,11 @@ func on_se_toggled(_button_pressed: bool):
 	update_se_button_text()
 
 func update_se_button_text():
-	if btn_se_enabled.button_pressed:
-		btn_se_enabled.text = "SE: ON"
-	else:
-		btn_se_enabled.text = "SE: OFF"
+	if btn_se_enabled:
+		if btn_se_enabled.button_pressed:
+			btn_se_enabled.text = "SE: ON"
+		else:
+			btn_se_enabled.text = "SE: OFF"
 
 func check_ranking_eligibility():
 	if GameData and GameData.is_eligible_for_ranking():
@@ -178,6 +218,12 @@ func on_ranking_close_pressed():
 	# ランキング登録を閉じた場合もスコアクリア
 	if GameData:
 		GameData.clear_score()
+
+func on_start_id_changed(new_text: String):
+	print("Start ID changed to: ", new_text)
+
+func on_end_id_changed(new_text: String):
+	print("End ID changed to: ", new_text)
 
 func update_ranking_display():
 	if not GameData or not GameData.ranking_manager:

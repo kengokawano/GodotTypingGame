@@ -48,6 +48,10 @@ func construct_type_sentence(sentence_hiragana: String) -> Array:
             valid_type_list = ["-"]
             idx += 1
             parsed_str.append(uni)
+        elif uni == "・":
+            valid_type_list = ["/", ".", "・"]
+            idx += 1
+            parsed_str.append(uni)
         elif _mapping_dictionary.has(tri):
             valid_type_list = _mapping_dictionary[tri]
             idx += 3

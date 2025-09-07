@@ -111,6 +111,10 @@ func _input(event: InputEvent):
 			var key_string = OS.get_keycode_string(event.keycode).to_lower()
 			if key_string in ["minus", "hyphen", "kp_subtract"]:
 				handle_key_press("-")
+			elif key_string in ["period", "kp_period"]:
+				handle_key_press(".")
+			elif key_string in ["slash", "kp_divide"]:
+				handle_key_press("/")
 
 func load_questions():
 	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
