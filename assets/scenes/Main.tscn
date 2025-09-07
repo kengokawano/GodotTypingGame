@@ -26,10 +26,6 @@ combo_particle_interval = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -95,17 +91,17 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KanaRitch" type="RichTextLabel" parent="all"]
-custom_minimum_size = Vector2(200, 350)
+custom_minimum_size = Vector2(200, 280)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/line_separation = -10
 theme_override_fonts/normal_font = ExtResource("2_g1376")
-theme_override_font_sizes/normal_font_size = 42
+theme_override_font_sizes/normal_font_size = 38
 bbcode_enabled = true
 text = "ここに入力
 ここに入力
-ここに入力
+
 
 "
 scroll_active = false
@@ -176,7 +172,7 @@ custom_minimum_size = Vector2(60, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("2_g1376")
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 48
 horizontal_alignment = 1
 vertical_alignment = 1
 

@@ -38,6 +38,14 @@ func _ready():
 	
 	btn_normal.toggled.connect(on_mode_selected)
 	btn_time_attack.toggled.connect(on_mode_selected)
+	
+	# ボタンテキストをリセット（Loading状態から復帰）
+	btn_start.text = "Start"
+	btn_debug_start.text = "Debug Start"
+	
+	# ボタンを有効化
+	btn_start.disabled = false
+	btn_debug_start.disabled = false
 
 	if GameData and GameData.has_valid_score():
 		var score = GameData.get_score()
