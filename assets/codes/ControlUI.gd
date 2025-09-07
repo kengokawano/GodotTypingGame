@@ -88,6 +88,6 @@ func on_debug_start_pressed():
 func on_debug_close_pressed():
 	debug_panel.visible = false
 
-func on_mode_selected(button_pressed: bool):
+func on_mode_selected(_button_pressed: bool):
 	# ボタンが押された時の処理（必要に応じて追加）
 	pass

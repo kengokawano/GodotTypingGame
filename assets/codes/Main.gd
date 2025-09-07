@@ -5,6 +5,9 @@ extends CanvasLayer
 @onready var kana_label: RichTextLabel = $all/KanaRitch
 @onready var time_label: Label = $all/TimeLabel
 @onready var combo_label: Label = $all/footer/ComboContainer/ComboLabel
+@onready var combo_text_label: Label = $all/footer/ComboContainer/ComboTextLabel
+@onready var combo_particles: CPUParticles2D = $all/footer/ComboContainer/ComboLabel/ComboParticles
+@onready var combo_text_particles: CPUParticles2D = $all/footer/ComboContainer/ComboTextLabel/ComboTextParticles
 @onready var score_label: Label = $all/header/ScoreContainer/ScoreLabel
 @onready var mode_label: Label = $all/header/ModeLabel
 @onready var game_timer: Timer = $GameTimer
@@ -25,6 +28,9 @@ enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 
 # Normalモード設定（インスペクターで変更可能）
 @export var normal_time_limit: int = 10  # Normal制限時間（秒）
+
+# コンボパーティクル設定（インスペクターで変更可能）
+@export_range(1, 20, 1) var combo_particle_interval: int = 5  # パーティクル発動のコンボ間隔（1-20）
 
 
 var _current_mode = GameMode.NONE
@@ -199,6 +205,7 @@ func update_display():
 		kana_label.text = "Press a button to start"
 		time_label.text = ""
 		combo_label.text = ""
+		combo_text_label.visible = false
 		score_label.text = ""
 		mode_label.text = "READY"
 		return
@@ -252,7 +259,13 @@ func update_display():
 	kana_label.text = roman_text
 	print("Setting kana_label.text to: ", roman_text)
 
-	combo_label.text = "%s" % _combo_count if _combo_count > 3 else ""
+	# コンボが3以上の時だけ表示
+	if _combo_count >= 3:
+		combo_label.text = "%s" % _combo_count
+		combo_text_label.visible = true
+	else:
+		combo_label.text = ""
+		combo_text_label.visible = false
 
 	if _current_mode == GameMode.NORMAL:
 		time_label.text = "%s" % _remaining_time_in_seconds
@@ -308,6 +321,11 @@ func handle_key_press(input_char: String):
 		_input_roman_index = 0
 		_candidate_romans = []
 		_combo_count += 1
+		
+		# コンボパーティクルの発動チェック（3回以上から毎回）
+		if _combo_count >= 3:
+			print("Combo particles triggered! Combo count: ", _combo_count)
+			trigger_combo_particles()
 
 		if _current_kana_index >= _current_kana.size():
 			if _current_mode == GameMode.TIME_ATTACK:
@@ -320,6 +338,37 @@ func handle_key_press(input_char: String):
 
 	update_display()
 
+
+func trigger_combo_particles():
+	print("trigger_combo_particles called")
+	
+	# パステルカラー5種類
+	var colors = [
+		Color(1, 0.8, 0.9, 1),      # パステルピンク
+		Color(0.8, 0.9, 1, 1),      # パステルブルー
+		Color(0.9, 1, 0.8, 1),      # パステルグリーン
+		Color(1, 0.9, 0.8, 1),      # パステルオレンジ
+		Color(0.9, 0.8, 1, 1),      # パステルパープル
+	]
+	var selected_color = colors[randi() % colors.size()]
+	
+	# ComboLabelのパーティクル
+	if combo_particles:
+		print("combo_particles node found, triggering particles")
+		combo_particles.color = selected_color
+		combo_particles.emitting = true
+		combo_particles.restart()
+	else:
+		print("combo_particles node not found!")
+	
+	# ComboTextLabelのパーティクル（同じ色）
+	if combo_text_particles:
+		print("combo_text_particles node found, triggering particles")
+		combo_text_particles.color = selected_color
+		combo_text_particles.emitting = true
+		combo_text_particles.restart()
+	else:
+		print("combo_text_particles node not found!")
 
 func on_game_timer_timeout():
 	if _current_mode == GameMode.TIME_ATTACK:
