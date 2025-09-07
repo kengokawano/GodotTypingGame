@@ -6,6 +6,13 @@ extends CanvasLayer
 @onready var btn_time_attack: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnTimeAttack
 @onready var btn_se_enabled: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnSEEnabled
 @onready var debug_panel: Panel = $DebugPanel
+@onready var ranking_panel: Panel = $RankingPanel
+@onready var ranking_score_label: Label = $RankingPanel/ScoreLabel
+@onready var ranking_name_input: LineEdit = $RankingPanel/NameInput
+@onready var btn_ranking_register: Button = $RankingPanel/btnRankingRegister
+@onready var btn_ranking_close: Button = $RankingPanel/btnRankingClose
+@onready var normal_ranking_list: RichTextLabel = $RankingDisplay/NormalRanking/NormalList
+@onready var time_attack_ranking_list: RichTextLabel = $RankingDisplay/TimeAttackRanking/TimeAttackList
 @onready var start_id_input: LineEdit = $DebugPanel/StartIdInput
 @onready var end_id_input: LineEdit = $DebugPanel/EndIdInput
 @onready var btn_debug_start: Button = $DebugPanel/btnDebugStart
@@ -40,6 +47,8 @@ func _ready():
 	btn_normal.toggled.connect(on_mode_selected)
 	btn_time_attack.toggled.connect(on_mode_selected)
 	btn_se_enabled.toggled.connect(on_se_toggled)
+	btn_ranking_register.pressed.connect(on_ranking_register_pressed)
+	btn_ranking_close.pressed.connect(on_ranking_close_pressed)
 	
 	# ボタンテキストをリセット（Loading状態から復帰）
 	btn_start.text = "Start"
@@ -55,9 +64,8 @@ func _ready():
 			la_score_label.text = "クリアタイム: %s秒" % score
 		else:
 			la_score_label.text = "あなたのスコア: %s" % score
-		GameData.clear_score()
-	else:
-		la_score_label.text = "スタートボタンを押してゲームを始めよう！"
+		# ランキング登録処理後にクリア（check_ranking_eligibilityの後）
+	
 	
 	# デバッグパネルのデフォルト値を設定
 	start_id_input.text = str(debug_default_start_id)
@@ -67,6 +75,16 @@ func _ready():
 	if GameData:
 		btn_se_enabled.button_pressed = GameData.is_se_enabled()
 		update_se_button_text()
+	
+	# ランキング表示の初期化
+	update_ranking_display()
+	
+	# ランキング登録チェック
+	check_ranking_eligibility()
+	
+	# ランキング処理完了後にスコアをクリア
+	if GameData and GameData.has_valid_score() and not GameData.is_eligible_for_ranking():
+		GameData.clear_score()
 
 func on_start_button_pressed():
 	# 選択されたモードとSE設定をGameDataに保存
@@ -116,3 +134,75 @@ func update_se_button_text():
 		btn_se_enabled.text = "SE: ON"
 	else:
 		btn_se_enabled.text = "SE: OFF"
+
+func check_ranking_eligibility():
+	if GameData and GameData.is_eligible_for_ranking():
+		show_ranking_registration()
+
+func show_ranking_registration():
+	if not GameData:
+		return
+	
+	var score = GameData.get_score()
+	var mode_text = "TIME ATTACK" if GameData.is_time_score() else "NORMAL"
+	var score_text = "%s秒" % score if GameData.is_time_score() else str(score)
+	
+	ranking_score_label.text = "%s - スコア: %s" % [mode_text, score_text]
+	ranking_name_input.text = ""
+	ranking_panel.visible = true
+	ranking_name_input.grab_focus()
+
+func on_ranking_register_pressed():
+	var player_name = ranking_name_input.text.strip_edges()
+	if player_name.is_empty():
+		return
+	
+	if GameData and GameData.add_to_ranking(player_name):
+		var score = GameData.get_score()
+		var is_time = GameData.is_time_score()
+		
+		ranking_panel.visible = false
+		update_ranking_display()
+		
+		# 成功メッセージを表示
+		if is_time:
+			la_score_label.text = "ランキング登録成功！クリアタイム: %s秒" % score
+		else:
+			la_score_label.text = "ランキング登録成功！スコア: %s" % score
+		
+		# ランキング登録後にスコアクリア
+		GameData.clear_score()
+
+func on_ranking_close_pressed():
+	ranking_panel.visible = false
+	# ランキング登録を閉じた場合もスコアクリア
+	if GameData:
+		GameData.clear_score()
+
+func update_ranking_display():
+	if not GameData or not GameData.ranking_manager:
+		normal_ranking_list.text = "データなし"
+		time_attack_ranking_list.text = "データなし"
+		return
+	
+	# Normalランキング表示
+	var normal_rankings = GameData.ranking_manager.get_normal_rankings()
+	var normal_text = ""
+	if normal_rankings.is_empty():
+		normal_text = "記録なし"
+	else:
+		for i in range(normal_rankings.size()):
+			var entry = normal_rankings[i]
+			normal_text += "%d. %s - %s\n" % [i + 1, entry.name, entry.score]
+	normal_ranking_list.text = normal_text
+	
+	# TimeAttackランキング表示
+	var time_attack_rankings = GameData.ranking_manager.get_time_attack_rankings()
+	var time_attack_text = ""
+	if time_attack_rankings.is_empty():
+		time_attack_text = "記録なし"
+	else:
+		for i in range(time_attack_rankings.size()):
+			var entry = time_attack_rankings[i]
+			time_attack_text += "%d. %s - %s秒\n" % [i + 1, entry.name, entry.score]
+	time_attack_ranking_list.text = time_attack_text

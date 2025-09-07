@@ -28,3 +28,10 @@ window/stretch/mode="canvas_items"
 [dotnet]
 
 project/assembly_name="TypingGame"
+
+[file_customization]
+
+folder_colors={
+"res://assets/codes/": "orange",
+"res://assets/scenes/": "red"
+}

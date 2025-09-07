@@ -1353,7 +1353,7 @@ colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 
 [node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
-normal_time_limit = 20
+time_attack_question_count = 5
 
 [node name="playerAnimation" type="AnimatedSprite2D" parent="."]
 position = Vector2(1078, 558)
