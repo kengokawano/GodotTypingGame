@@ -1355,6 +1355,32 @@ colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 script = ExtResource("1_fpf70")
 time_attack_question_count = 5
 
+[node name="Background" type="Control" parent="."]
+z_index = -100
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UpperBackground" type="ColorRect" parent="Background"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.7, 0.3, 0.3, 1)
+
+[node name="LowerBackground" type="ColorRect" parent="Background"]
+layout_mode = 0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.5, 0.5, 0.5, 1)
+
 [node name="playerAnimation" type="AnimatedSprite2D" parent="."]
 position = Vector2(1078, 558)
 scale = Vector2(-1, 1)
