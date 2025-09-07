@@ -63,6 +63,8 @@ const QuestionLoader = preload("res://assets/codes/QuestionLoader.gd")
 
 # アニメーション管理用
 var _cached_animation_count: int = 0
+var _animation_usage_count: Dictionary = {}  # 使用頻度追跡
+var _preloaded_animations: Dictionary = {}  # プリロードされたアニメーション
 
 func _ready():
 	# Autoloadされたシングルトンを取得
@@ -186,9 +188,11 @@ func load_next_question():
 		if _questions_completed >= time_attack_question_count:
 			finish_game()
 			return
-		question = _all_questions.pick_random()
+		var random_questions = QuestionLoader.get_random_questions(1)
+		question = random_questions[0] if not random_questions.is_empty() else _all_questions.pick_random()
 	else:
-		question = _all_questions.pick_random()
+		var random_questions = QuestionLoader.get_random_questions(1)
+		question = random_questions[0] if not random_questions.is_empty() else _all_questions.pick_random()
 
 	_current_question_text = question.text
 	var result = RomanTypingParser.construct_type_sentence(question.kana)
@@ -203,6 +207,12 @@ func finish_game():
 	# プレイヤーアニメーション停止
 	if player_animation:
 		player_animation.stop()
+
+	# アニメーション統計を更新
+	preload_frequent_animations()
+	
+	# リソースクリーンアップ
+	cleanup_resources()
 
 	var final_score = _total_key_presses if _current_mode == GameMode.NORMAL else _elapsed_time_in_seconds
 	var is_time_score = _current_mode == GameMode.TIME_ATTACK
@@ -404,7 +414,56 @@ func play_random_animation():
 	
 	var random_index = randi() % _cached_animation_count
 	var selected_animation = available_animations[random_index]
+	
+	# 使用統計を記録
+	_animation_usage_count[selected_animation] = _animation_usage_count.get(selected_animation, 0) + 1
+	
 	player_animation.play(selected_animation)
+
+func preload_frequent_animations():
+	# 使用頻度の高いアニメーションを事前準備（将来の拡張用）
+	var sorted_animations = []
+	for anim_name in _animation_usage_count.keys():
+		sorted_animations.append([anim_name, _animation_usage_count[anim_name]])
+	
+	sorted_animations.sort_custom(func(a, b): return a[1] > b[1])
+	
+	# 上位のアニメーションをプリロード対象とマーク
+	var preload_count = min(3, sorted_animations.size())
+	for i in range(preload_count):
+		var anim_name = sorted_animations[i][0]
+		_preloaded_animations[anim_name] = true
+
+func get_animation_stats() -> Dictionary:
+	return _animation_usage_count.duplicate()
+
+func cleanup_resources():
+	# 使用されていない問題データをクリーンアップ
+	_debug_questions.clear()
+	
+	# 大きなキャッシュサイズの場合、部分的にクリア
+	if QuestionLoader._cached_questions_by_id.size() > 500:
+		var keys_to_remove = []
+		var count = 0
+		for key in QuestionLoader._cached_questions_by_id.keys():
+			if count > 250:  # 半分を残す
+				keys_to_remove.append(key)
+			count += 1
+		
+		for key in keys_to_remove:
+			QuestionLoader._cached_questions_by_id.erase(key)
+	
+	# メモリ使用量をGCに委ねる
+	if OS.has_method("force_gc"):
+		OS.call("force_gc")
+
+func get_memory_usage_info() -> Dictionary:
+	return {
+		"cached_questions": QuestionLoader._cached_questions_by_id.size(),
+		"raw_data_loaded": QuestionLoader._cache_loaded,
+		"animation_stats": _animation_usage_count.size(),
+		"preloaded_animations": _preloaded_animations.size()
+	}
 
 func on_game_timer_timeout():
 	if _current_mode == GameMode.TIME_ATTACK:
