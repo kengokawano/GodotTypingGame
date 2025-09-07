@@ -4,6 +4,7 @@ extends CanvasLayer
 @onready var btn_debug_toggle: Button = $VBoxContainer/HBoxContainer/btnDebugToggle
 @onready var btn_normal: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnNormal
 @onready var btn_time_attack: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnTimeAttack
+@onready var btn_se_enabled: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnSEEnabled
 @onready var debug_panel: Panel = $DebugPanel
 @onready var start_id_input: LineEdit = $DebugPanel/StartIdInput
 @onready var end_id_input: LineEdit = $DebugPanel/EndIdInput
@@ -38,6 +39,7 @@ func _ready():
 	
 	btn_normal.toggled.connect(on_mode_selected)
 	btn_time_attack.toggled.connect(on_mode_selected)
+	btn_se_enabled.toggled.connect(on_se_toggled)
 	
 	# ボタンテキストをリセット（Loading状態から復帰）
 	btn_start.text = "Start"
@@ -60,14 +62,20 @@ func _ready():
 	# デバッグパネルのデフォルト値を設定
 	start_id_input.text = str(debug_default_start_id)
 	end_id_input.text = str(debug_default_end_id)
+	
+	# SE設定の初期化
+	if GameData:
+		btn_se_enabled.button_pressed = GameData.is_se_enabled()
+		update_se_button_text()
 
 func on_start_button_pressed():
-	# 選択されたモードをGameDataに保存
+	# 選択されたモードとSE設定をGameDataに保存
 	if GameData:
 		if btn_normal.button_pressed:
 			GameData.set_game_mode(GameData.GameMode.NORMAL)
 		elif btn_time_attack.button_pressed:
 			GameData.set_game_mode(GameData.GameMode.TIME_ATTACK)
+		GameData.set_se_enabled(btn_se_enabled.button_pressed)
 	
 	btn_start.text = "Loading..."
 	get_tree().change_scene_to_file("res://assets/scenes/Main.tscn")
@@ -99,3 +107,12 @@ func on_debug_close_pressed():
 func on_mode_selected(_button_pressed: bool):
 	# ボタンが押された時の処理（必要に応じて追加）
 	pass
+
+func on_se_toggled(_button_pressed: bool):
+	update_se_button_text()
+
+func update_se_button_text():
+	if btn_se_enabled.button_pressed:
+		btn_se_enabled.text = "SE: ON"
+	else:
+		btn_se_enabled.text = "SE: OFF"

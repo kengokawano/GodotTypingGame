@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(godot:*)"
+      "Bash(godot:*)",
+      "Read(//d/**)"
     ],
     "deny": [],
     "ask": []

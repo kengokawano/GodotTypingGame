@@ -11,6 +11,8 @@ extends CanvasLayer
 @onready var score_label: Label = $all/header/ScoreContainer/ScoreLabel
 @onready var mode_label: Label = $all/header/ModeLabel
 @onready var game_timer: Timer = $GameTimer
+@onready var player_animation: AnimatedSprite2D = $playerAnimation
+@onready var correct_key_audio: AudioStreamPlayer = $CorrectKeyAudio
 
 enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 
@@ -160,6 +162,12 @@ func start_game(mode: GameMode):
 
 	load_next_question()
 	game_timer.start()
+	
+	# プレイヤーアニメーション開始（ランダム選択）
+	if player_animation:
+		var animations = ["act1", "dash"]
+		var random_animation = animations[randi() % animations.size()]
+		player_animation.play(random_animation)
 
 func load_next_question():
 	_current_kana_index = 0
@@ -189,6 +197,10 @@ func load_next_question():
 func finish_game():
 	game_timer.stop()
 	_is_game_started = false
+	
+	# プレイヤーアニメーション停止
+	if player_animation:
+		player_animation.stop()
 
 	var final_score = _total_key_presses if _current_mode == GameMode.NORMAL else _elapsed_time_in_seconds
 	var is_time_score = _current_mode == GameMode.TIME_ATTACK
@@ -321,6 +333,10 @@ func handle_key_press(input_char: String):
 		_input_roman_index = 0
 		_candidate_romans = []
 		_combo_count += 1
+		
+		# 正確な入力時に音声を再生
+		if correct_key_audio and GameData and GameData.is_se_enabled():
+			correct_key_audio.play()
 		
 		# コンボパーティクルの発動チェック（3回以上から毎回）
 		if _combo_count >= 3:

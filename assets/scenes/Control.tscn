@@ -153,6 +153,11 @@ text = "Normal"
 layout_mode = 2
 text = "Time Attack"
 
+[node name="btnSEEnabled" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection"]
+layout_mode = 2
+button_pressed = true
+text = "SE: ON"
+
 [node name="_sep2" type="Label" parent="VBoxContainer"]
 layout_mode = 2
 label_settings = SubResource("LabelSettings_nw7le")

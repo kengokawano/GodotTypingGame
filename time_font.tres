@@ -1,7 +1,0 @@
-[gd_resource type="LabelSettings" load_steps=2 format=3 uid="uid://dvc1bemphlw4o"]
-
-[ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="1_1pgye"]
-
-[resource]
-font = ExtResource("1_1pgye")
-font_size = 32
