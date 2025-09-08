@@ -19,56 +19,14 @@ static func load_questions_from_file(file_path: String) -> Array:
 	
 	var json_string = ""
 	
-	# HTMLエクスポート環境での外部ファイル読み込み
-	if OS.has_feature("web"):
-		var http_request = HTTPRequest.new()
-		var scene_tree = Engine.get_main_loop() as SceneTree
-		if scene_tree and scene_tree.current_scene:
-			scene_tree.current_scene.add_child(http_request)
-		
-		# 圧縮を完全に無効化してエラーを回避
-		http_request.use_threads = false
-		http_request.accept_gzip = false
-		
-		# JavaScriptEngine経由で現在のURLから絶対パスを構築
-		var js_interface = JavaScriptBridge
-		var current_url = js_interface.eval("window.location.href")
-		var base_url = js_interface.eval("window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1)")
-		var external_path = base_url + "questions.json"
-		
-		print("Attempting to load: ", external_path)
-		
-		# HTTPヘッダーを設定して圧縮を完全に回避
-		var headers = PackedStringArray()
-		headers.append("Accept-Encoding: identity")
-		headers.append("Content-Encoding: identity")
-		http_request.request(external_path, headers)
-		
-		var response = await http_request.request_completed
-		
-		if response[1] == 200:  # HTTP OK
-			var raw_data = response[3]
-			if raw_data.size() == 0:
-				print("Received empty response")
-				# フォールバック：組み込みファイルを試す
-				if FileAccess.file_exists(file_path):
-					json_string = FileAccess.get_file_as_string(file_path)
-				else:
-					return []
-			else:
-				json_string = raw_data.get_string_from_utf8()
-				print("External questions.json loaded successfully, size: ", raw_data.size())
-		else:
-			print("Failed to load external questions.json (", response[1], "), using fallback")
-			# フォールバック：組み込みファイルを試す
-			if FileAccess.file_exists(file_path):
-				json_string = FileAccess.get_file_as_string(file_path)
-			else:
-				return []
-		
-		http_request.queue_free()
+	# 外部ファイル（user://questions.json）を優先して読み込み
+	var external_path = "user://questions.json"
+	if FileAccess.file_exists(external_path):
+		print("Loading external questions.json from: ", external_path)
+		json_string = FileAccess.get_file_as_string(external_path)
 	else:
-		# 通常の環境では従来通り
+		# フォールバック：組み込みファイルを使用
+		print("External questions.json not found, using built-in file: ", file_path)
 		if not FileAccess.file_exists(file_path):
 			printerr("Failed to find question file: ", file_path)
 			return []
