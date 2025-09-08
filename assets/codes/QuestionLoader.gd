@@ -26,8 +26,9 @@ static func load_questions_from_file(file_path: String) -> Array:
 		if scene_tree and scene_tree.current_scene:
 			scene_tree.current_scene.add_child(http_request)
 		
-		# 圧縮を無効化してエラーを回避
+		# 圧縮を完全に無効化してエラーを回避
 		http_request.use_threads = false
+		http_request.accept_gzip = false
 		
 		# JavaScriptEngine経由で現在のURLから絶対パスを構築
 		var js_interface = JavaScriptBridge
@@ -37,9 +38,10 @@ static func load_questions_from_file(file_path: String) -> Array:
 		
 		print("Attempting to load: ", external_path)
 		
-		# HTTPヘッダーを設定して圧縮を回避
+		# HTTPヘッダーを設定して圧縮を完全に回避
 		var headers = PackedStringArray()
 		headers.append("Accept-Encoding: identity")
+		headers.append("Content-Encoding: identity")
 		http_request.request(external_path, headers)
 		
 		var response = await http_request.request_completed
