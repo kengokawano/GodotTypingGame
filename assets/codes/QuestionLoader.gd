@@ -26,6 +26,9 @@ static func load_questions_from_file(file_path: String) -> Array:
 		if scene_tree and scene_tree.current_scene:
 			scene_tree.current_scene.add_child(http_request)
 		
+		# 圧縮を無効化してエラーを回避
+		http_request.use_threads = false
+		
 		# JavaScriptEngine経由で現在のURLから絶対パスを構築
 		var js_interface = JavaScriptBridge
 		var current_url = js_interface.eval("window.location.href")
@@ -33,12 +36,26 @@ static func load_questions_from_file(file_path: String) -> Array:
 		var external_path = base_url + "questions.json"
 		
 		print("Attempting to load: ", external_path)
-		http_request.request(external_path)
+		
+		# HTTPヘッダーを設定して圧縮を回避
+		var headers = PackedStringArray()
+		headers.append("Accept-Encoding: identity")
+		http_request.request(external_path, headers)
+		
 		var response = await http_request.request_completed
 		
 		if response[1] == 200:  # HTTP OK
-			json_string = response[3].get_string_from_utf8()
-			print("External questions.json loaded successfully")
+			var raw_data = response[3]
+			if raw_data.size() == 0:
+				print("Received empty response")
+				# フォールバック：組み込みファイルを試す
+				if FileAccess.file_exists(file_path):
+					json_string = FileAccess.get_file_as_string(file_path)
+				else:
+					return []
+			else:
+				json_string = raw_data.get_string_from_utf8()
+				print("External questions.json loaded successfully, size: ", raw_data.size())
 		else:
 			print("Failed to load external questions.json (", response[1], "), using fallback")
 			# フォールバック：組み込みファイルを試す
@@ -55,10 +72,31 @@ static func load_questions_from_file(file_path: String) -> Array:
 			return []
 		json_string = FileAccess.get_file_as_string(file_path)
 
+	if json_string.is_empty():
+		printerr("JSON string is empty")
+		return []
+	
+	# JSONの先頭をチェックしてデバッグ情報を出力
+	var preview = json_string.substr(0, min(100, json_string.length()))
+	print("JSON preview (first 100 chars): ", preview)
+	
 	var json = JSON.new()
 	var error = json.parse(json_string)
 	if error != OK:
-		printerr("Failed to parse questions JSON: ", json.get_error_message(), " in ", json_string, " at line ", json.get_error_line())
+		var error_line = json.get_error_line()
+		var error_message = json.get_error_message()
+		printerr("Failed to parse questions JSON: ", error_message, " at line ", error_line)
+		
+		# エラー行周辺のテキストを表示
+		if error_line > 0:
+			var lines = json_string.split("\n")
+			if error_line <= lines.size():
+				var start_line = max(0, error_line - 3)
+				var end_line = min(lines.size() - 1, error_line + 2)
+				print("Context around error:")
+				for i in range(start_line, end_line + 1):
+					var marker = " -> " if i == error_line - 1 else "    "
+					print(marker, "Line ", i + 1, ": ", lines[i])
 		return []
 
 	var data = json.get_data()
