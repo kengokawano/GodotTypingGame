@@ -3,7 +3,7 @@ extends Node
 
 enum GameMode { NORMAL, TIME_ATTACK }
 
-const RANKING_FILE_PATH = "user://ranking.json"
+const RANKING_FILE_PATH = "ranking.json"
 const MAX_RANKING_ENTRIES = 5
 
 # ランキングデータ構造
@@ -11,33 +11,27 @@ var _normal_rankings: Array = []      # Normalモード (スコア降順)
 var _time_attack_rankings: Array = [] # TimeAttackモード (時間昇順)
 
 func _ready():
-	load_rankings()
+	await load_rankings()
 
 func load_rankings():
-	if not FileAccess.file_exists(RANKING_FILE_PATH):
-		create_default_ranking_file()
-		return
+	var res_path = "res://assets/data/ranking.json"
 	
-	var json_string = FileAccess.get_file_as_string(RANKING_FILE_PATH)
-	var json = JSON.new()
-	var error = json.parse(json_string)
+	if FileAccess.file_exists(res_path):
+		print("Loading rankings from: ", res_path)
+		var json_string = FileAccess.get_file_as_string(res_path)
+		var json = JSON.new()
+		var error = json.parse(json_string)
+		
+		if error == OK:
+			var data = json.get_data()
+			if data is Dictionary:
+				_normal_rankings = data.get("normal", [])
+				_time_attack_rankings = data.get("time_attack", [])
+				validate_and_fix_rankings()
+				return
 	
-	if error != OK:
-		printerr("Failed to parse ranking JSON: ", json.get_error_message())
-		create_default_ranking_file()
-		return
-	
-	var data = json.get_data()
-	if not data is Dictionary:
-		printerr("Invalid ranking format, expected a dictionary.")
-		create_default_ranking_file()
-		return
-	
-	_normal_rankings = data.get("normal", [])
-	_time_attack_rankings = data.get("time_attack", [])
-	
-	# データの整合性チェックと修正
-	validate_and_fix_rankings()
+	print("No ranking file found, creating default")
+	create_default_ranking_file()
 
 func create_default_ranking_file():
 	_normal_rankings = []
@@ -77,20 +71,7 @@ func validate_ranking_array(rankings: Array, is_time_based: bool) -> Array:
 	return valid_rankings
 
 func save_rankings():
-	var data = {
-		"normal": _normal_rankings,
-		"time_attack": _time_attack_rankings,
-		"last_updated": Time.get_unix_time_from_system()
-	}
-	
-	var json_string = JSON.stringify(data, "  ")
-	var file = FileAccess.open(RANKING_FILE_PATH, FileAccess.WRITE)
-	
-	if file:
-		file.store_string(json_string)
-		file.close()
-	else:
-		printerr("Failed to save ranking file")
+	print("Note: Ranking save is disabled for HTTP mode")
 
 func is_score_rankable(score: int, mode: GameMode) -> bool:
 	var rankings = _normal_rankings if mode == GameMode.NORMAL else _time_attack_rankings

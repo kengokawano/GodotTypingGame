@@ -18,19 +18,14 @@ static func load_questions_from_file(file_path: String) -> Array:
 		return _cached_questions
 	
 	var json_string = ""
+	var res_path = "res://assets/data/questions.json"
 	
-	# 外部ファイル（user://questions.json）を優先して読み込み
-	var external_path = "user://questions.json"
-	if FileAccess.file_exists(external_path):
-		print("Loading external questions.json from: ", external_path)
-		json_string = FileAccess.get_file_as_string(external_path)
-	else:
-		# フォールバック：組み込みファイルを使用
-		print("External questions.json not found, using built-in file: ", file_path)
-		if not FileAccess.file_exists(file_path):
-			printerr("Failed to find question file: ", file_path)
-			return []
-		json_string = FileAccess.get_file_as_string(file_path)
+	print("Loading questions from: ", res_path)
+	if not FileAccess.file_exists(res_path):
+		printerr("Failed to find question file: ", res_path)
+		return []
+	
+	json_string = FileAccess.get_file_as_string(res_path)
 
 	if json_string.is_empty():
 		printerr("JSON string is empty")
