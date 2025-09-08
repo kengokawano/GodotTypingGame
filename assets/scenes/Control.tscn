@@ -267,14 +267,14 @@ horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "TypingGame"
+text = "Football Typing"
 label_settings = SubResource("LabelSettings_nw7le")
 horizontal_alignment = 1
 
 [node name="laScore" type="Label" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
-text = "Startで開始"
+text = "Spaceキーで開始"
 label_settings = SubResource("LabelSettings_8kh01")
 horizontal_alignment = 1
 

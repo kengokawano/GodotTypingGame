@@ -100,6 +100,12 @@ func _ready():
 		start_normal.call_deferred()  # GameDataがない場合のフォールバック
 
 func _input(event: InputEvent):
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		# エスケープキーでタイトル画面に戻る（ゲーム中のみ）
+		if event.keycode == KEY_ESCAPE and _is_game_started:
+			return_to_title()
+			return
+	
 	if not _is_game_started: return
 
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -222,6 +228,25 @@ func finish_game():
 	var is_time_score = _current_mode == GameMode.TIME_ATTACK
 	if GameData:
 		GameData.set_score(final_score, is_time_score)
+	get_tree().change_scene_to_file("res://assets/scenes/Control.tscn")
+
+	_current_mode = GameMode.NONE
+
+func return_to_title():
+	game_timer.stop()
+	_is_game_started = false
+	
+	# プレイヤーアニメーション停止
+	if player_animation:
+		player_animation.stop()
+
+	# アニメーション統計を更新
+	preload_frequent_animations()
+	
+	# リソースクリーンアップ
+	cleanup_resources()
+
+	# スコア保存せずにタイトル画面に戻る
 	get_tree().change_scene_to_file("res://assets/scenes/Control.tscn")
 
 	_current_mode = GameMode.NONE

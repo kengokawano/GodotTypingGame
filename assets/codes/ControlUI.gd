@@ -109,6 +109,10 @@ func _ready():
 	# ランキング処理完了後にスコアをクリア
 	if GameData and GameData.has_valid_score() and not GameData.is_eligible_for_ranking():
 		GameData.clear_score()
+	
+	# デバッグボタンを初期状態で非表示
+	if btn_debug_toggle:
+		btn_debug_toggle.visible = false
 
 func on_start_button_pressed():
 	print("Start button pressed!")
@@ -225,6 +229,17 @@ func on_start_id_changed(new_text: String):
 
 func on_end_id_changed(new_text: String):
 	print("End ID changed to: ", new_text)
+
+func _input(event: InputEvent):
+	if event is InputEventKey and event.is_pressed() and not event.is_echo():
+		# Ctrl+Shift+Dでデバッグボタン表示
+		if event.keycode == KEY_D and event.ctrl_pressed and event.shift_pressed:
+			if btn_debug_toggle:
+				btn_debug_toggle.visible = not btn_debug_toggle.visible
+		elif event.keycode == KEY_SPACE:
+			# ランキング入力中でなければスペースキーでゲーム開始
+			if not ranking_panel.visible:
+				on_start_button_pressed()
 
 func update_ranking_display():
 	if not GameData or not GameData.ranking_manager:
