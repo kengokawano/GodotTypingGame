@@ -124,16 +124,16 @@ text = "Close"
 
 [node name="RankingPanel" type="Panel" parent="."]
 visible = false
-z_index = 100
+z_index = 4096
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -150.0
+offset_top = -250.0
 offset_right = 200.0
-offset_bottom = 150.0
+offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 
