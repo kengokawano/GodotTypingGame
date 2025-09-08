@@ -67,6 +67,7 @@ func _ready():
 	if btn_ranking_close:
 		btn_ranking_close.pressed.connect(on_ranking_close_pressed)
 	
+	
 	# ボタンテキストをリセット（Loading状態から復帰）
 	if btn_start:
 		btn_start.text = "Start"

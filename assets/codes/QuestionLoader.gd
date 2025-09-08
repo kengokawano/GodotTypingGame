@@ -17,11 +17,43 @@ static func load_questions_from_file(file_path: String) -> Array:
 	if _cache_loaded and not _cached_questions.is_empty():
 		return _cached_questions
 	
-	if not FileAccess.file_exists(file_path):
-		printerr("Failed to find question file: ", file_path)
-		return []
-
-	var json_string = FileAccess.get_file_as_string(file_path)
+	var json_string = ""
+	
+	# HTMLエクスポート環境での外部ファイル読み込み
+	if OS.has_feature("web"):
+		var http_request = HTTPRequest.new()
+		var scene_tree = Engine.get_main_loop() as SceneTree
+		if scene_tree and scene_tree.current_scene:
+			scene_tree.current_scene.add_child(http_request)
+		
+		# JavaScriptEngine経由で現在のURLから絶対パスを構築
+		var js_interface = JavaScriptBridge
+		var current_url = js_interface.eval("window.location.href")
+		var base_url = js_interface.eval("window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1)")
+		var external_path = base_url + "questions.json"
+		
+		print("Attempting to load: ", external_path)
+		http_request.request(external_path)
+		var response = await http_request.request_completed
+		
+		if response[1] == 200:  # HTTP OK
+			json_string = response[3].get_string_from_utf8()
+			print("External questions.json loaded successfully")
+		else:
+			print("Failed to load external questions.json (", response[1], "), using fallback")
+			# フォールバック：組み込みファイルを試す
+			if FileAccess.file_exists(file_path):
+				json_string = FileAccess.get_file_as_string(file_path)
+			else:
+				return []
+		
+		http_request.queue_free()
+	else:
+		# 通常の環境では従来通り
+		if not FileAccess.file_exists(file_path):
+			printerr("Failed to find question file: ", file_path)
+			return []
+		json_string = FileAccess.get_file_as_string(file_path)
 
 	var json = JSON.new()
 	var error = json.parse(json_string)

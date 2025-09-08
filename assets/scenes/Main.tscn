@@ -1354,7 +1354,6 @@ colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 [node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
 time_attack_question_count = 5
-normal_time_limit = 30
 
 [node name="Background" type="Control" parent="."]
 z_index = -100

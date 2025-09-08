@@ -79,7 +79,7 @@ func _ready():
 
 	game_timer.timeout.connect(on_game_timer_timeout)
 	RomanTypingParser.read_json_file()
-	load_questions()
+	await load_questions()
 	update_display()
 	
 	# アニメーション設定をキャッシュ
@@ -117,7 +117,7 @@ func _input(event: InputEvent):
 				handle_key_press("/")
 
 func load_questions():
-	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
+	_all_questions = await QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
 	if _all_questions.is_empty():
 		var fallback_q = preload("res://assets/codes/Question.gd").new()
 		fallback_q.id = 0
