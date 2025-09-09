@@ -19,6 +19,7 @@ static func load_questions_from_file(file_path: String) -> Array:
 	
 	var json_string = ""
 	
+
 	if not FileAccess.file_exists(file_path):
 		printerr("Failed to find question file: ", file_path)
 		return []
