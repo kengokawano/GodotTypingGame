@@ -18,17 +18,41 @@ static func load_questions_from_file(file_path: String) -> Array:
 		return _cached_questions
 	
 	var json_string = ""
+	var res_path = "res://assets/data/questions.json"
 	
+
 
 	if not FileAccess.file_exists(file_path):
 		printerr("Failed to find question file: ", file_path)
 		return []
 	json_string = FileAccess.get_file_as_string(file_path)
 
+
+	if json_string.is_empty():
+		printerr("JSON string is empty")
+		return []
+	
+	# JSONの先頭をチェックしてデバッグ情報を出力
+	var preview = json_string.substr(0, min(100, json_string.length()))
+	print("JSON preview (first 100 chars): ", preview)
+	
 	var json = JSON.new()
 	var error = json.parse(json_string)
 	if error != OK:
-		printerr("Failed to parse questions JSON: ", json.get_error_message(), " in ", json_string, " at line ", json.get_error_line())
+		var error_line = json.get_error_line()
+		var error_message = json.get_error_message()
+		printerr("Failed to parse questions JSON: ", error_message, " at line ", error_line)
+		
+		# エラー行周辺のテキストを表示
+		if error_line > 0:
+			var lines = json_string.split("\n")
+			if error_line <= lines.size():
+				var start_line = max(0, error_line - 3)
+				var end_line = min(lines.size() - 1, error_line + 2)
+				print("Context around error:")
+				for i in range(start_line, end_line + 1):
+					var marker = " -> " if i == error_line - 1 else "    "
+					print(marker, "Line ", i + 1, ": ", lines[i])
 		return []
 
 	var data = json.get_data()
