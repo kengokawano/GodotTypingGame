@@ -11,14 +11,14 @@ static var _cache_loaded: bool = false
 
 # 遅延読み込み用の設定
 @export var lazy_load_enabled: bool = true
-@export var cache_size_limit: int = 1000  # キャッシュする問題数の上限
+@export var cache_size_limit: int = 500  # キャッシュする問題数の上限
+@export var initial_load_limit: int = 50  # 初回読み込み問題数
 
 static func load_questions_from_file(file_path: String) -> Array:
 	if _cache_loaded and not _cached_questions.is_empty():
 		return _cached_questions
 	
 	var json_string = ""
-	var res_path = "res://assets/data/questions.json"
 	
 
 
@@ -64,7 +64,7 @@ static func load_questions_from_file(file_path: String) -> Array:
 	_cache_loaded = true
 	
 	# 初期ロード分の問題を作成（全体の一部のみ）
-	var initial_load_count = min(data.size(), 100)  # 最初は100問まで
+	var initial_load_count = min(data.size(), 20)  # 最初は20問まで
 	_cached_questions = create_questions_from_raw_data(0, initial_load_count)
 	
 	return _cached_questions
@@ -114,6 +114,7 @@ static func get_random_questions(count: int) -> Array:
 	if _raw_data_cache.is_empty():
 		return []
 	
+	# 全データからランダムに選択（キャッシュに関係なく）
 	var available_indices = range(_raw_data_cache.size())
 	available_indices.shuffle()
 	
@@ -125,12 +126,27 @@ static func get_random_questions(count: int) -> Array:
 		var question_data = _raw_data_cache[index]
 		var id = question_data.get("id", 0)
 		
-		# キャッシュから取得、なければ作成
-		var question = get_question_by_id(id)
+		# 直接作成（キャッシュを経由しない）
+		var question = create_question_from_data(question_data)
 		if question:
 			selected_questions.append(question)
 	
 	return selected_questions
+
+# 単一の問題データから問題オブジェクトを作成
+static func create_question_from_data(question_data: Dictionary):
+	if not question_data is Dictionary:
+		return null
+	
+	var q = QuestionResource.new()
+	q.id = question_data.get("id", 0)
+	q.No = question_data.get("No", "")
+	q.Pos = question_data.get("Pos", "")
+	q.text = question_data.get("text", "")
+	q.kana = question_data.get("kana", "")
+	q.tags = question_data.get("tags", [])
+	q.era = question_data.get("era", 0)
+	return q
 
 # No、Pos、Tag での抽出機能
 static func get_questions_by_no(no: String) -> Array:

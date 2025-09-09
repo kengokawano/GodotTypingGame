@@ -74,6 +74,14 @@ func _ready():
 	# Autoloadされたシングルトンを取得
 	if has_node("/root/GameData"):
 		GameData = get_node("/root/GameData")
+	
+	game_timer.timeout.connect(on_game_timer_timeout)
+	update_display()
+	
+	# 重い初期化処理を遅延実行
+	initialize_game_deferred.call_deferred()
+
+func initialize_game_deferred():
 	# RomanTypingParserは通常のノードとしてインスタンス化
 	RomanTypingParser = get_node_or_null("RomanTypingParser")
 	if RomanTypingParser == null:
@@ -81,13 +89,10 @@ func _ready():
 		RomanTypingParser.name = "RomanTypingParser"
 		add_child(RomanTypingParser)
 
-	game_timer.timeout.connect(on_game_timer_timeout)
 	RomanTypingParser.read_json_file()
 	load_questions()
-	update_display()
 	
-	# アニメーション設定をキャッシュ
-	validate_animations()
+	# アニメーション設定をキャッシュ（軽量化）
 	_cached_animation_count = available_animations.size()
 
 	if GameData and GameData.is_debug_mode:
@@ -99,9 +104,9 @@ func _ready():
 		elif selected_mode == GameData.GameMode.TIME_ATTACK:
 			start_time_attack.call_deferred()
 		else:
-			start_normal.call_deferred()  # フォールバック
+			start_normal.call_deferred()
 	else:
-		start_normal.call_deferred()  # GameDataがない場合のフォールバック
+		start_normal.call_deferred()
 
 func _input(event: InputEvent):
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -439,35 +444,16 @@ func trigger_combo_particles():
 		combo_text_particles.emitting = true
 		combo_text_particles.restart()
 
-func validate_animations():
-	if not player_animation:
-		return
-	
-	var sprite_frames = player_animation.sprite_frames
-	if not sprite_frames:
-		return
-	
-	# 存在しないアニメーションを削除
-	var valid_animations: Array[String] = []
-	for anim_name in available_animations:
-		if sprite_frames.has_animation(anim_name):
-			valid_animations.append(anim_name)
-		else:
-			printerr("Animation '%s' not found in sprite frames" % anim_name)
-	
-	available_animations = valid_animations
-
 func play_random_animation():
-	if not player_animation or _cached_animation_count == 0:
+	if not player_animation or available_animations.is_empty():
 		return
 	
-	var random_index = randi() % _cached_animation_count
+	var random_index = randi() % available_animations.size()
 	var selected_animation = available_animations[random_index]
 	
-	# 使用統計を記録
-	_animation_usage_count[selected_animation] = _animation_usage_count.get(selected_animation, 0) + 1
-	
-	player_animation.play(selected_animation)
+	# 存在確認は最小限に
+	if player_animation.sprite_frames and player_animation.sprite_frames.has_animation(selected_animation):
+		player_animation.play(selected_animation)
 
 func preload_frequent_animations():
 	# 使用頻度の高いアニメーションを事前準備（将来の拡張用）
