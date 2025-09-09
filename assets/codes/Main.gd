@@ -1,6 +1,7 @@
 extends CanvasLayer
 
 @onready var question_label: Label = $all/QuestionLabel
+@onready var info_text: RichTextLabel = $all/infoText
 @onready var kana_progress_label: RichTextLabel = $all/KanaProgressLabel
 @onready var kana_label: RichTextLabel = $all/KanaRitch
 @onready var time_label: Label = $all/TimeLabel
@@ -44,6 +45,9 @@ var _total_key_presses: int = 0
 
 var _all_questions: Array = []
 var _current_question_text: String = ""
+var _current_question_era: String = ""
+var _current_question_no: String = ""
+var _current_question_pos: String = ""
 var _current_kana: Array[String] = []
 var _current_roman: Array[Array] = []
 var _current_kana_index: int = 0
@@ -79,7 +83,7 @@ func _ready():
 
 	game_timer.timeout.connect(on_game_timer_timeout)
 	RomanTypingParser.read_json_file()
-	await load_questions()
+	load_questions()
 	update_display()
 	
 	# アニメーション設定をキャッシュ
@@ -123,10 +127,12 @@ func _input(event: InputEvent):
 				handle_key_press("/")
 
 func load_questions():
-	_all_questions = await QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
+	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
 	if _all_questions.is_empty():
 		var fallback_q = preload("res://assets/codes/Question.gd").new()
 		fallback_q.id = 0
+		fallback_q.No = "0"
+		fallback_q.Pos = "fallback"
 		fallback_q.text = "Fallback"
 		fallback_q.kana = "あ"
 		fallback_q.tags = ["fallback"]
@@ -205,6 +211,9 @@ func load_next_question():
 		question = random_questions[0] if not random_questions.is_empty() else _all_questions.pick_random()
 
 	_current_question_text = question.text
+	_current_question_era = str(question.era)
+	_current_question_no = question.No
+	_current_question_pos = question.Pos
 	var result = RomanTypingParser.construct_type_sentence(question.kana)
 	_current_kana = result[0]
 	_current_roman = result[1]
@@ -254,6 +263,7 @@ func return_to_title():
 func update_display():
 	if not _is_game_started:
 		question_label.text = "Typing Game"
+		info_text.text = ""
 		kana_progress_label.text = ""
 		kana_label.text = "Press a button to start"
 		time_label.text = ""
@@ -264,6 +274,16 @@ func update_display():
 		return
 
 	question_label.text = _current_question_text
+	# 年代（No）、ポジション（Pos）、era情報を表示
+	var info_parts = []
+	if _current_question_no != "":
+		info_parts.append("[color=#cccccc]%s[/color]" % _current_question_no)  # グレー
+	if _current_question_pos != "":
+		info_parts.append("[color=#cccccc]%s[/color]" % _current_question_pos)  # グレー
+	if _current_question_era != "":
+		info_parts.append("[color=#cccccc]%s[/color]" % _current_question_era)  # グレー
+	
+	info_text.text = " | ".join(info_parts)
 
 	var kana_progress_text = ""
 	for i in range(_current_kana.size()):

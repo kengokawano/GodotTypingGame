@@ -2,6 +2,8 @@
 extends Resource
 
 @export var id: int = 0
+@export var No: String = ""
+@export var Pos: String = ""
 @export var text: String = ""
 @export var kana: String = ""
 @export var tags: Array = []

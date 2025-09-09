@@ -213,7 +213,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 20
-text = "NORMAL Top5"
+text = "ノーマル Top5"
 horizontal_alignment = 1
 
 [node name="NormalList" type="RichTextLabel" parent="RankingDisplay/NormalRanking"]
@@ -238,7 +238,7 @@ layout_mode = 2
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 20
-text = "TIME ATTACK Top5"
+text = "タイムアタック Top5"
 horizontal_alignment = 1
 
 [node name="TimeAttackList" type="RichTextLabel" parent="RankingDisplay/TimeAttackRanking"]

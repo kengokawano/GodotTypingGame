@@ -19,41 +19,10 @@ static func load_questions_from_file(file_path: String) -> Array:
 	
 	var json_string = ""
 	
-	# HTMLエクスポート環境での外部ファイル読み込み
-	if OS.has_feature("web"):
-		var http_request = HTTPRequest.new()
-		var scene_tree = Engine.get_main_loop() as SceneTree
-		if scene_tree and scene_tree.current_scene:
-			scene_tree.current_scene.add_child(http_request)
-		
-		# JavaScriptEngine経由で現在のURLから絶対パスを構築
-		var js_interface = JavaScriptBridge
-		var current_url = js_interface.eval("window.location.href")
-		var base_url = js_interface.eval("window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1)")
-		var external_path = base_url + "questions.json"
-		
-		print("Attempting to load: ", external_path)
-		http_request.request(external_path)
-		var response = await http_request.request_completed
-		
-		if response[1] == 200:  # HTTP OK
-			json_string = response[3].get_string_from_utf8()
-			print("External questions.json loaded successfully")
-		else:
-			print("Failed to load external questions.json (", response[1], "), using fallback")
-			# フォールバック：組み込みファイルを試す
-			if FileAccess.file_exists(file_path):
-				json_string = FileAccess.get_file_as_string(file_path)
-			else:
-				return []
-		
-		http_request.queue_free()
-	else:
-		# 通常の環境では従来通り
-		if not FileAccess.file_exists(file_path):
-			printerr("Failed to find question file: ", file_path)
-			return []
-		json_string = FileAccess.get_file_as_string(file_path)
+	if not FileAccess.file_exists(file_path):
+		printerr("Failed to find question file: ", file_path)
+		return []
+	json_string = FileAccess.get_file_as_string(file_path)
 
 	var json = JSON.new()
 	var error = json.parse(json_string)
@@ -84,6 +53,8 @@ static func create_questions_from_raw_data(start_index: int, count: int) -> Arra
 		if question_data is Dictionary:
 			var q = QuestionResource.new()
 			q.id = question_data.get("id", 0)
+			q.No = question_data.get("No", "")
+			q.Pos = question_data.get("Pos", "")
 			q.text = question_data.get("text", "")
 			q.kana = question_data.get("kana", "")
 			q.tags = question_data.get("tags", [])
@@ -103,6 +74,8 @@ static func get_question_by_id(id: int) -> Resource:
 		if question_data is Dictionary and question_data.get("id", 0) == id:
 			var q = QuestionResource.new()
 			q.id = question_data.get("id", 0)
+			q.No = question_data.get("No", "")
+			q.Pos = question_data.get("Pos", "")
 			q.text = question_data.get("text", "")
 			q.kana = question_data.get("kana", "")
 			q.tags = question_data.get("tags", [])
@@ -133,6 +106,68 @@ static func get_random_questions(count: int) -> Array:
 			selected_questions.append(question)
 	
 	return selected_questions
+
+# No、Pos、Tag での抽出機能
+static func get_questions_by_no(no: String) -> Array:
+	var filtered_questions: Array = []
+	for question_data in _raw_data_cache:
+		if question_data is Dictionary and question_data.get("No", "") == no:
+			var id = question_data.get("id", 0)
+			var question = get_question_by_id(id)
+			if question:
+				filtered_questions.append(question)
+	return filtered_questions
+
+static func get_questions_by_pos(pos: String) -> Array:
+	var filtered_questions: Array = []
+	for question_data in _raw_data_cache:
+		if question_data is Dictionary and question_data.get("Pos", "") == pos:
+			var id = question_data.get("id", 0)
+			var question = get_question_by_id(id)
+			if question:
+				filtered_questions.append(question)
+	return filtered_questions
+
+static func get_questions_by_tag(tag: String) -> Array:
+	var filtered_questions: Array = []
+	for question_data in _raw_data_cache:
+		if question_data is Dictionary:
+			var tags = question_data.get("tags", [])
+			if tag in tags:
+				var id = question_data.get("id", 0)
+				var question = get_question_by_id(id)
+				if question:
+					filtered_questions.append(question)
+	return filtered_questions
+
+# 複数条件での抽出機能
+static func get_questions_by_filters(no_filter: String = "", pos_filter: String = "", tag_filter: String = "") -> Array:
+	var filtered_questions: Array = []
+	for question_data in _raw_data_cache:
+		if question_data is Dictionary:
+			var matches = true
+			
+			# No でフィルタ
+			if no_filter != "" and question_data.get("No", "") != no_filter:
+				matches = false
+			
+			# Pos でフィルタ
+			if matches and pos_filter != "" and question_data.get("Pos", "") != pos_filter:
+				matches = false
+			
+			# Tag でフィルタ
+			if matches and tag_filter != "":
+				var tags = question_data.get("tags", [])
+				if tag_filter not in tags:
+					matches = false
+			
+			if matches:
+				var id = question_data.get("id", 0)
+				var question = get_question_by_id(id)
+				if question:
+					filtered_questions.append(question)
+	
+	return filtered_questions
 
 static func clear_cache():
 	_cached_questions.clear()

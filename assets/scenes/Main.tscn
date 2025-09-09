@@ -1353,7 +1353,8 @@ colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 
 [node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
-time_attack_question_count = 5
+time_attack_question_count = 10
+normal_time_limit = 30
 
 [node name="Background" type="Control" parent="."]
 z_index = -100
@@ -1447,6 +1448,16 @@ label_settings = SubResource("LabelSettings_fpf70")
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="infoText" type="RichTextLabel" parent="all"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_fonts/normal_font = ExtResource("2_g1376")
+theme_override_font_sizes/normal_font_size = 24
+bbcode_enabled = true
+text = "かな進捗をここに表示"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="KanaProgressLabel" type="RichTextLabel" parent="all"]
 custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
@@ -1458,7 +1469,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KanaRitch" type="RichTextLabel" parent="all"]
-custom_minimum_size = Vector2(200, 280)
+custom_minimum_size = Vector2(200, 260)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
