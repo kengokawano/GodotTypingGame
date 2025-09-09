@@ -10,6 +10,7 @@
 # This folder contains intermediate files from the C# build process
 .mono/
 web/
+web/apps/typing/
 
 # C# / .NET build artifacts
 bin/
