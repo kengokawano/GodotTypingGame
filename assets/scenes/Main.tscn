@@ -1336,9 +1336,12 @@ animations = [{
 "speed": 12.0
 }]
 
+[sub_resource type="Gradient" id="Gradient_combo"]
+colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
+
 [sub_resource type="LabelSettings" id="LabelSettings_fpf70"]
 font = ExtResource("2_g1376")
-font_size = 52
+font_size = 44
 
 [sub_resource type="LabelSettings" id="LabelSettings_embyv"]
 font = ExtResource("2_g1376")
@@ -1347,9 +1350,6 @@ font_size = 46
 [sub_resource type="LabelSettings" id="LabelSettings_jv468"]
 font = ExtResource("2_g1376")
 font_size = 32
-
-[sub_resource type="Gradient" id="Gradient_combo"]
-colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 
 [node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
@@ -1383,12 +1383,76 @@ grow_vertical = 2
 color = Color(0.5, 0.5, 0.5, 1)
 
 [node name="playerAnimation" type="AnimatedSprite2D" parent="."]
-position = Vector2(1078, 558)
-scale = Vector2(-1, 1)
+position = Vector2(1020, 558)
+scale = Vector2(-0.8, 0.8)
 sprite_frames = SubResource("SpriteFrames_cb1w8")
 animation = &"dash"
 
 [node name="GameTimer" type="Timer" parent="."]
+
+[node name="ComboContainer" type="HBoxContainer" parent="."]
+offset_top = 648.0
+offset_right = 176.0
+offset_bottom = 726.0
+
+[node name="ComboTextLabel" type="Label" parent="ComboContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 28
+text = "Combo:"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ComboTextParticles" type="CPUParticles2D" parent="ComboContainer/ComboTextLabel"]
+position = Vector2(35, 14)
+emitting = false
+lifetime = 1.5
+one_shot = true
+explosiveness = 1.0
+emission_shape = 1
+emission_sphere_radius = 6.0
+direction = Vector2(0, -1)
+spread = 360.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 80.0
+initial_velocity_max = 120.0
+angular_velocity_min = -360.0
+angular_velocity_max = 360.0
+scale_amount_min = 6.0
+scale_amount_max = 10.0
+color = Color(0.8, 0.9, 1, 1)
+color_ramp = SubResource("Gradient_combo")
+
+[node name="ComboLabel" type="Label" parent="ComboContainer"]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 48
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ComboParticles" type="CPUParticles2D" parent="ComboContainer/ComboLabel"]
+position = Vector2(30, 14)
+emitting = false
+amount = 10
+lifetime = 1.5
+one_shot = true
+explosiveness = 1.0
+emission_shape = 1
+emission_sphere_radius = 8.0
+direction = Vector2(0, -1)
+spread = 360.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 100.0
+initial_velocity_max = 160.0
+angular_velocity_min = -360.0
+angular_velocity_max = 360.0
+scale_amount_min = 8.0
+scale_amount_max = 12.0
+color = Color(1, 0.8, 0.9, 1)
+color_ramp = SubResource("Gradient_combo")
 
 [node name="all" type="VBoxContainer" parent="."]
 anchors_preset = 15
@@ -1437,13 +1501,15 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="_sep" type="Label" parent="all"]
-custom_minimum_size = Vector2(0, 50)
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 
 [node name="QuestionLabel" type="Label" parent="all"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
-text = "問題文をここに表示"
+theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_font_sizes/font_size = 24
+text = "問題文をここに表示
+"
 label_settings = SubResource("LabelSettings_fpf70")
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -1456,26 +1522,26 @@ theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
 text = "かな進捗をここに表示"
 horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="KanaProgressLabel" type="RichTextLabel" parent="all"]
-custom_minimum_size = Vector2(0, 70)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_g1376")
 theme_override_font_sizes/normal_font_size = 36
 bbcode_enabled = true
-text = "かな進捗をここに表示"
+text = "かな進捗をここに表示
+kana"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="KanaRitch" type="RichTextLabel" parent="all"]
-custom_minimum_size = Vector2(200, 260)
+custom_minimum_size = Vector2(200, 160)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/line_separation = -10
 theme_override_fonts/normal_font = ExtResource("2_g1376")
-theme_override_font_sizes/normal_font_size = 38
+theme_override_font_sizes/normal_font_size = 30
 bbcode_enabled = true
 text = "ここに入力
 ここに入力
@@ -1508,71 +1574,6 @@ text = "残り"
 label_settings = SubResource("LabelSettings_jv468")
 horizontal_alignment = 2
 vertical_alignment = 1
-
-[node name="footer" type="HBoxContainer" parent="all"]
-layout_mode = 2
-
-[node name="ComboContainer" type="HBoxContainer" parent="all/footer"]
-layout_mode = 2
-
-[node name="ComboTextLabel" type="Label" parent="all/footer/ComboContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("2_g1376")
-theme_override_font_sizes/font_size = 28
-text = "Combo:"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ComboTextParticles" type="CPUParticles2D" parent="all/footer/ComboContainer/ComboTextLabel"]
-position = Vector2(35, 14)
-emitting = false
-lifetime = 1.5
-one_shot = true
-explosiveness = 1.0
-emission_shape = 1
-emission_sphere_radius = 6.0
-direction = Vector2(0, -1)
-spread = 360.0
-gravity = Vector2(0, 0)
-initial_velocity_min = 80.0
-initial_velocity_max = 120.0
-angular_velocity_min = -360.0
-angular_velocity_max = 360.0
-scale_amount_min = 6.0
-scale_amount_max = 10.0
-color = Color(0.8, 0.9, 1, 1)
-color_ramp = SubResource("Gradient_combo")
-
-[node name="ComboLabel" type="Label" parent="all/footer/ComboContainer"]
-custom_minimum_size = Vector2(60, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("2_g1376")
-theme_override_font_sizes/font_size = 48
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ComboParticles" type="CPUParticles2D" parent="all/footer/ComboContainer/ComboLabel"]
-position = Vector2(30, 14)
-emitting = false
-amount = 10
-lifetime = 1.5
-one_shot = true
-explosiveness = 1.0
-emission_shape = 1
-emission_sphere_radius = 8.0
-direction = Vector2(0, -1)
-spread = 360.0
-gravity = Vector2(0, 0)
-initial_velocity_min = 100.0
-initial_velocity_max = 160.0
-angular_velocity_min = -360.0
-angular_velocity_max = 360.0
-scale_amount_min = 8.0
-scale_amount_max = 12.0
-color = Color(1, 0.8, 0.9, 1)
-color_ramp = SubResource("Gradient_combo")
 
 [node name="CorrectKeyAudio" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("4_key1")

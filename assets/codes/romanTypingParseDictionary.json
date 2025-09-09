@@ -6454,5 +6454,13 @@
   {
 	"Pattern": "んZ",
 	"TypePattern": ["nnZ", "xnZ"]
+  },
+  {
+	"Pattern": "！",
+	"TypePattern": ["!"]
+  },
+  {
+	"Pattern": "？",
+	"TypePattern": ["?"]
   }
 ]

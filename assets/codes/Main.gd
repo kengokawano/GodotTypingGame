@@ -5,10 +5,10 @@ extends CanvasLayer
 @onready var kana_progress_label: RichTextLabel = $all/KanaProgressLabel
 @onready var kana_label: RichTextLabel = $all/KanaRitch
 @onready var time_label: Label = $all/TimeLabel
-@onready var combo_label: Label = $all/footer/ComboContainer/ComboLabel
-@onready var combo_text_label: Label = $all/footer/ComboContainer/ComboTextLabel
-@onready var combo_particles: CPUParticles2D = $all/footer/ComboContainer/ComboLabel/ComboParticles
-@onready var combo_text_particles: CPUParticles2D = $all/footer/ComboContainer/ComboTextLabel/ComboTextParticles
+@onready var combo_label: Label = $ComboContainer/ComboLabel
+@onready var combo_text_label: Label = $ComboContainer/ComboTextLabel
+@onready var combo_particles: CPUParticles2D = $ComboContainer/ComboLabel/ComboParticles
+@onready var combo_text_particles: CPUParticles2D = $ComboContainer/ComboTextLabel/ComboTextParticles
 @onready var score_label: Label = $all/header/ScoreContainer/ScoreLabel
 @onready var mode_label: Label = $all/header/ModeLabel
 @onready var game_timer: Timer = $GameTimer
@@ -96,6 +96,9 @@ func initialize_game_deferred():
 	_cached_animation_count = available_animations.size()
 
 	if GameData and GameData.is_debug_mode:
+		print("Starting debug mode from GameData")
+		print("Debug start ID: ", GameData.debug_start_id)
+		print("Debug end ID: ", GameData.debug_end_id)
 		start_debug_from_game_data.call_deferred()
 	elif GameData:
 		var selected_mode = GameData.get_game_mode()
@@ -151,21 +154,37 @@ func start_time_attack():
 	start_game(GameMode.TIME_ATTACK)
 
 func start_debug_mode(start_id: int, end_id: int):
+	print("start_debug_mode called with start_id: ", start_id, ", end_id: ", end_id)
 	_debug_start_id = start_id
 	_debug_end_id = end_id
 	_debug_current_index = 0
 
-	_debug_questions = _all_questions.filter(func(q): return q.id >= start_id and q.id <= end_id)
+	print("Total questions loaded: ", _all_questions.size())
+	
+	# デバッグモードでは、指定されたIDの問題を直接QuestionLoaderから取得
+	_debug_questions = []
+	for id in range(start_id, end_id + 1):
+		var question = QuestionLoader.get_question_by_id(id)
+		if question:
+			_debug_questions.append(question)
+	
+	print("Debug questions found: ", _debug_questions.size())
 	_debug_questions.sort_custom(func(a, b): return a.id < b.id)
 
 	if _debug_questions.is_empty():
 		printerr("No questions found in range %d-%d" % [start_id, end_id])
+		print("Note: QuestionLoader only loads first 20 questions by default")
+		print("Check if questions.json contains IDs in this range")
 		return
 
+	print("Debug questions IDs: ", _debug_questions.map(func(q): return q.id))
 	start_game(GameMode.DEBUG)
 
 func start_debug_from_game_data():
 	if GameData:
+		print("start_debug_from_game_data called")
+		print("GameData.debug_start_id: ", GameData.debug_start_id)
+		print("GameData.debug_end_id: ", GameData.debug_end_id)
 		start_debug_mode(GameData.debug_start_id, GameData.debug_end_id)
 		GameData.clear_debug_mode()
 
@@ -278,7 +297,8 @@ func update_display():
 		mode_label.text = "READY"
 		return
 
-	question_label.text = _current_question_text
+	# 問題文を適切な長さで改行
+	question_label.text = format_text_with_line_breaks(_current_question_text, 30)
 	# 年代（No）、ポジション（Pos）、era情報を表示
 	var info_parts = []
 	if _current_question_no != "":
@@ -298,7 +318,9 @@ func update_display():
 			kana_progress_text += "[color=%s][font_size=42][u]%s[/u][/font_size][/color]" % [color_current, _current_kana[i]]
 		else:
 			kana_progress_text += _current_kana[i]
-	kana_progress_label.text = kana_progress_text
+	
+	# かな進捗を適切な長さで改行（RichTextLabel用）
+	kana_progress_label.text = format_kana_progress_with_line_breaks(kana_progress_text, 20)
 
 	var roman_text = ""
 	if not _candidate_romans.is_empty() and _input_roman_index > 0:
@@ -499,6 +521,59 @@ func get_memory_usage_info() -> Dictionary:
 		"animation_stats": _animation_usage_count.size(),
 		"preloaded_animations": _preloaded_animations.size()
 	}
+
+# 問題文を指定文字数で改行する
+func format_text_with_line_breaks(text: String, max_chars_per_line: int) -> String:
+	if text.length() <= max_chars_per_line:
+		return text
+	
+	var lines = []
+	var current_line = ""
+	var chars = text.split("")
+	
+	for char in chars:
+		if current_line.length() >= max_chars_per_line:
+			lines.append(current_line)
+			current_line = char
+		else:
+			current_line += char
+	
+	if not current_line.is_empty():
+		lines.append(current_line)
+	
+	return "\n".join(lines)
+
+# かな進捗をRichTextFormat対応で改行する
+func format_kana_progress_with_line_breaks(rich_text: String, max_display_chars_per_line: int) -> String:
+	# RichTextLabelの場合、表示文字数をカウントしながら改行を挿入
+	# BBCodeタグは文字数に含めない
+	
+	var result = ""
+	var display_char_count = 0
+	var i = 0
+	
+	while i < rich_text.length():
+		var char = rich_text[i]
+		
+		if char == "[":
+			# BBCodeタグの開始を検出
+			var tag_end = rich_text.find("]", i)
+			if tag_end != -1:
+				var tag = rich_text.substr(i, tag_end - i + 1)
+				result += tag
+				i = tag_end + 1
+				continue
+		
+		# 通常の文字
+		if display_char_count >= max_display_chars_per_line and char != " ":
+			result += "\n"
+			display_char_count = 0
+		
+		result += char
+		display_char_count += 1
+		i += 1
+	
+	return result
 
 func on_game_timer_timeout():
 	if _current_mode == GameMode.TIME_ATTACK:

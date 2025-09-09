@@ -139,27 +139,38 @@ func on_debug_toggle_pressed():
 
 func on_debug_start_pressed():
 	print("Debug start pressed!")
+	print("start_id_input: ", start_id_input)
+	print("end_id_input: ", end_id_input)
+	
 	if not start_id_input or not end_id_input:
 		printerr("Debug input fields not found")
 		return
 		
 	var start_text = start_id_input.text
 	var end_text = end_id_input.text
+	print("Start text: '", start_text, "', End text: '", end_text, "'")
 
 	if start_text.is_valid_int() and end_text.is_valid_int():
 		var start_id = start_text.to_int()
 		var end_id = end_text.to_int()
+		print("Start ID: ", start_id, ", End ID: ", end_id)
 
 		if start_id <= end_id:
 			if GameData:
+				print("Setting debug mode: ", start_id, " to ", end_id)
 				GameData.set_debug_mode(start_id, end_id)
+				print("GameData.is_debug_mode: ", GameData.is_debug_mode)
+				print("GameData.debug_start_id: ", GameData.debug_start_id)
+				print("GameData.debug_end_id: ", GameData.debug_end_id)
+			else:
+				printerr("GameData not found!")
 			if btn_debug_start:
 				btn_debug_start.text = "Loading..."
 			get_tree().change_scene_to_file("res://assets/scenes/Main.tscn")
 		else:
 			printerr("Start ID must be less than or equal to End ID")
 	else:
-		printerr("Please enter valid numbers for Start ID and End ID")
+		printerr("Please enter valid numbers for Start ID and End ID: '", start_text, "' and '", end_text, "'")
 
 func on_debug_close_pressed():
 	print("Debug close pressed!")
