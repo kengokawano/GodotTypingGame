@@ -14,11 +14,11 @@ func _ready():
 	await load_rankings()
 
 func load_rankings():
-	var res_path = "res://assets/data/ranking.json"
+	var save_path = "user://data/ranking.json"
 	
-	if FileAccess.file_exists(res_path):
-		print("Loading rankings from: ", res_path)
-		var json_string = FileAccess.get_file_as_string(res_path)
+	if FileAccess.file_exists(save_path):
+		print("Loading rankings from: ", save_path)
+		var json_string = FileAccess.get_file_as_string(save_path)
 		var json = JSON.new()
 		var error = json.parse(json_string)
 		
@@ -29,7 +29,9 @@ func load_rankings():
 				_time_attack_rankings = data.get("time_attack", [])
 				validate_and_fix_rankings()
 				return
-	
+		# パースエラーの場合は、デフォルトファイルを作成する
+		print("Failed to parse ranking file. Creating default. Error: ", error)
+
 	print("No ranking file found, creating default")
 	create_default_ranking_file()
 
@@ -71,7 +73,24 @@ func validate_ranking_array(rankings: Array, is_time_based: bool) -> Array:
 	return valid_rankings
 
 func save_rankings():
-	print("Note: Ranking save is disabled for HTTP mode")
+	var dir_path = "user://data"
+	if not DirAccess.dir_exists_absolute(dir_path):
+		var err = DirAccess.make_dir_recursive_absolute(dir_path)
+		if err != OK:
+			print("Failed to create directory: ", dir_path)
+			return
+
+	var file = FileAccess.open("user://data/ranking.json", FileAccess.WRITE)
+	if file:
+		var data = {
+			"normal": _normal_rankings,
+			"time_attack": _time_attack_rankings
+		}
+		var json_string = JSON.stringify(data, "\t")
+		file.store_string(json_string)
+		file.close()
+	else:
+		print("Failed to open file for writing: user://data/ranking.json")
 
 func is_score_rankable(score: int, mode: GameMode) -> bool:
 	var rankings = _normal_rankings if mode == GameMode.NORMAL else _time_attack_rankings
