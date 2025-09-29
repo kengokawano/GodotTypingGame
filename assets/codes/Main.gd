@@ -10,6 +10,7 @@ extends CanvasLayer
 @onready var combo_particles: CPUParticles2D = $ComboContainer/ComboLabel/ComboParticles
 @onready var combo_text_particles: CPUParticles2D = $ComboContainer/ComboTextLabel/ComboTextParticles
 @onready var score_label: Label = $all/header/ScoreContainer/ScoreLabel
+@onready var miss_label: Label = $all/header/ScoreContainer/MissLabel
 @onready var mode_label: Label = $all/header/ModeLabel
 @onready var game_timer: Timer = $GameTimer
 @onready var player_animation: AnimatedSprite2D = $playerAnimation
@@ -42,6 +43,7 @@ var _is_game_started: bool = false
 var _elapsed_time_in_seconds: int = 0
 var _combo_count: int = 0
 var _total_key_presses: int = 0
+var _miss_count: int = 0
 
 var _all_questions: Array = []
 var _current_question_text: String = ""
@@ -96,9 +98,6 @@ func initialize_game_deferred():
 	_cached_animation_count = available_animations.size()
 
 	if GameData and GameData.is_debug_mode:
-		print("Starting debug mode from GameData")
-		print("Debug start ID: ", GameData.debug_start_id)
-		print("Debug end ID: ", GameData.debug_end_id)
 		start_debug_from_game_data.call_deferred()
 	elif GameData:
 		var selected_mode = GameData.get_game_mode()
@@ -154,37 +153,27 @@ func start_time_attack():
 	start_game(GameMode.TIME_ATTACK)
 
 func start_debug_mode(start_id: int, end_id: int):
-	print("start_debug_mode called with start_id: ", start_id, ", end_id: ", end_id)
 	_debug_start_id = start_id
 	_debug_end_id = end_id
 	_debug_current_index = 0
 
-	print("Total questions loaded: ", _all_questions.size())
-	
 	# デバッグモードでは、指定されたIDの問題を直接QuestionLoaderから取得
 	_debug_questions = []
 	for id in range(start_id, end_id + 1):
 		var question = QuestionLoader.get_question_by_id(id)
 		if question:
 			_debug_questions.append(question)
-	
-	print("Debug questions found: ", _debug_questions.size())
+
 	_debug_questions.sort_custom(func(a, b): return a.id < b.id)
 
 	if _debug_questions.is_empty():
 		printerr("No questions found in range %d-%d" % [start_id, end_id])
-		print("Note: QuestionLoader only loads first 20 questions by default")
-		print("Check if questions.json contains IDs in this range")
 		return
 
-	print("Debug questions IDs: ", _debug_questions.map(func(q): return q.id))
 	start_game(GameMode.DEBUG)
 
 func start_debug_from_game_data():
 	if GameData:
-		print("start_debug_from_game_data called")
-		print("GameData.debug_start_id: ", GameData.debug_start_id)
-		print("GameData.debug_end_id: ", GameData.debug_end_id)
 		start_debug_mode(GameData.debug_start_id, GameData.debug_end_id)
 		GameData.clear_debug_mode()
 
@@ -194,6 +183,7 @@ func start_game(mode: GameMode):
 
 	_combo_count = 0
 	_total_key_presses = 0
+	_miss_count = 0
 	_current_kana_index = 0
 	_input_roman_index = 0
 	_candidate_romans = []
@@ -294,6 +284,7 @@ func update_display():
 		combo_label.text = ""
 		combo_text_label.visible = false
 		score_label.text = ""
+		miss_label.text = ""
 		mode_label.text = "READY"
 		return
 
@@ -366,6 +357,9 @@ func update_display():
 		combo_label.text = ""
 		combo_text_label.visible = false
 
+	# ミス数は別表示で固定幅
+	miss_label.text = "%s" % _miss_count
+
 	if _current_mode == GameMode.NORMAL:
 		time_label.text = "%s" % _remaining_time_in_seconds
 		score_label.text = "%s" % _total_key_presses
@@ -399,9 +393,10 @@ func handle_key_press(input_char: String):
 				correct_key_audio.play()
 		else:
 			_combo_count = 0
+			_miss_count += 1
 	else:
 		var next_candidates = _candidate_romans.filter(func(r): return r.length() > _input_roman_index and r[_input_roman_index] == input_char)
-		
+
 		if not next_candidates.is_empty():
 			_candidate_romans = next_candidates
 			_input_roman_index += 1
@@ -409,10 +404,9 @@ func handle_key_press(input_char: String):
 			if correct_key_audio and GameData and GameData.is_se_enabled():
 				correct_key_audio.play()
 		else:
-			_input_roman_index = 0
-			_candidate_romans = []
+			# 間違った文字が入力された場合、現在の状態を維持（無視）
 			_combo_count = 0
-			handle_key_press(input_char)
+			_miss_count += 1
 			return
 
 	var completed = false
