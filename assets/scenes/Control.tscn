@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cv5ohpdtk3k2i"]
+[gd_scene load_steps=7 format=3 uid="uid://cv5ohpdtk3k2i"]
 
 [ext_resource type="Script" uid="uid://dpolr6jmmn1o8" path="res://assets/codes/ControlUI.gd" id="1_vxiwm"]
 [ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="2_vxiwm"]
@@ -11,6 +11,10 @@ font_size = 66
 [sub_resource type="LabelSettings" id="LabelSettings_8kh01"]
 font = ExtResource("2_vxiwm")
 font_size = 48
+
+[sub_resource type="LabelSettings" id="LabelSettings_w2my6"]
+font = ExtResource("2_vxiwm")
+font_size = 32
 
 [node name="CanvasLayer" type="CanvasLayer"]
 script = ExtResource("1_vxiwm")
@@ -317,4 +321,10 @@ text = "SE: ON"
 [node name="_sep2" type="Label" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Title2" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "v1.01 うめざきをうめさきに修正"
+label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1
