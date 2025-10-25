@@ -79,11 +79,12 @@ func is_eligible_for_ranking() -> bool:
 func add_to_ranking(player_name: String) -> bool:
 	if not ranking_manager or not is_ranking_eligible:
 		return false
-	
+
 	var mode = ranking_manager.GameMode.TIME_ATTACK if is_clear_time_score else ranking_manager.GameMode.NORMAL
-	var success = ranking_manager.add_ranking_entry(player_name, last_score, mode)
-	
+	# API通信を待つ
+	var success = await ranking_manager.add_ranking_entry(player_name, last_score, mode)
+
 	if success:
 		is_ranking_eligible = false  # 一度登録したら再登録不可
-	
+
 	return success
