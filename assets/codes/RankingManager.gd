@@ -3,25 +3,96 @@ extends Node
 
 enum GameMode { NORMAL, TIME_ATTACK }
 
-const RANKING_FILE_PATH = "ranking.json"
 const MAX_RANKING_ENTRIES = 5
+
+# API設定（インスペクターで変更可能）
+@export var api_base_url: String = "https://orange.saitama.jp/type/apps/typing/api"
+@export var enable_api: bool = true  # falseにするとローカルファイル保存
+
+# HTTPリクエスト用ノード
+var _http_get: HTTPRequest
+var _http_post: HTTPRequest
 
 # ランキングデータ構造
 var _normal_rankings: Array = []      # Normalモード (スコア降順)
 var _time_attack_rankings: Array = [] # TimeAttackモード (時間昇順)
 
+# ローディング状態
+var _is_loading: bool = false
+var _load_complete: bool = false
+
 func _ready():
+	# HTTPRequestノードを作成
+	_http_get = HTTPRequest.new()
+	_http_post = HTTPRequest.new()
+	add_child(_http_get)
+	add_child(_http_post)
+
+	_http_get.request_completed.connect(_on_get_rankings_completed)
+	_http_post.request_completed.connect(_on_submit_score_completed)
+
 	await load_rankings()
 
 func load_rankings():
+	if enable_api:
+		# APIから読み込み
+		await load_rankings_from_api()
+	else:
+		# ローカルファイルから読み込み（従来の方式）
+		load_rankings_from_local()
+
+func load_rankings_from_api():
+	_is_loading = true
+	var url = api_base_url + "/get_rankings.php"
+	print("Loading rankings from API: ", url)
+
+	var error = _http_get.request(url)
+	if error != OK:
+		printerr("Failed to send HTTP request: ", error)
+		_is_loading = false
+		_load_complete = true
+		# フォールバック: ローカルから読み込み
+		load_rankings_from_local()
+
+func _on_get_rankings_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+	_is_loading = false
+	_load_complete = true
+
+	if result != HTTPRequest.RESULT_SUCCESS:
+		printerr("HTTP Request failed: ", result)
+		load_rankings_from_local()  # フォールバック
+		return
+
+	if response_code != 200:
+		printerr("HTTP Response code: ", response_code)
+		load_rankings_from_local()  # フォールバック
+		return
+
+	var json_string = body.get_string_from_utf8()
+	var json = JSON.new()
+	var error = json.parse(json_string)
+
+	if error == OK:
+		var data = json.get_data()
+		if data is Dictionary:
+			_normal_rankings = data.get("normal", [])
+			_time_attack_rankings = data.get("time_attack", [])
+			validate_and_fix_rankings()
+			print("Rankings loaded successfully from API")
+			return
+
+	printerr("Failed to parse rankings JSON from API")
+	load_rankings_from_local()  # フォールバック
+
+func load_rankings_from_local():
 	var save_path = "user://data/ranking.json"
-	
+
 	if FileAccess.file_exists(save_path):
-		print("Loading rankings from: ", save_path)
+		print("Loading rankings from local file: ", save_path)
 		var json_string = FileAccess.get_file_as_string(save_path)
 		var json = JSON.new()
 		var error = json.parse(json_string)
-		
+
 		if error == OK:
 			var data = json.get_data()
 			if data is Dictionary:
@@ -29,10 +100,8 @@ func load_rankings():
 				_time_attack_rankings = data.get("time_attack", [])
 				validate_and_fix_rankings()
 				return
-		# パースエラーの場合は、デフォルトファイルを作成する
-		print("Failed to parse ranking file. Creating default. Error: ", error)
 
-	print("No ranking file found, creating default")
+	print("No local ranking file found, creating default")
 	create_default_ranking_file()
 
 func create_default_ranking_file():
@@ -109,13 +178,67 @@ func is_score_rankable(score: int, mode: GameMode) -> bool:
 func add_ranking_entry(player_name: String, score: int, mode: GameMode) -> bool:
 	if not is_score_rankable(score, mode):
 		return false
-	
+
+	if enable_api:
+		# APIに送信
+		await submit_score_to_api(player_name, score, mode)
+	else:
+		# ローカルに保存（従来の方式）
+		add_ranking_entry_local(player_name, score, mode)
+
+	return true
+
+func submit_score_to_api(player_name: String, score: int, mode: GameMode):
+	var url = api_base_url + "/submit_score.php"
+	var mode_string = "normal" if mode == GameMode.NORMAL else "time_attack"
+
+	var data = {
+		"name": player_name.strip_edges(),
+		"score": score,
+		"mode": mode_string
+	}
+
+	var json_string = JSON.stringify(data)
+	var headers = ["Content-Type: application/json"]
+
+	print("Submitting score to API: ", url)
+	var error = _http_post.request(url, headers, HTTPClient.METHOD_POST, json_string)
+	if error != OK:
+		printerr("Failed to send score to API: ", error)
+		# フォールバック: ローカルに保存
+		add_ranking_entry_local(player_name, score, mode)
+
+func _on_submit_score_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+	if result != HTTPRequest.RESULT_SUCCESS:
+		printerr("Submit score HTTP request failed: ", result)
+		return
+
+	if response_code != 200:
+		printerr("Submit score HTTP response code: ", response_code)
+		return
+
+	var json_string = body.get_string_from_utf8()
+	var json = JSON.new()
+	var error = json.parse(json_string)
+
+	if error == OK:
+		var data = json.get_data()
+		if data is Dictionary and data.get("success", false):
+			print("Score submitted successfully to API")
+			# APIから最新のランキングを再取得
+			await load_rankings_from_api()
+		else:
+			printerr("API returned success=false")
+	else:
+		printerr("Failed to parse submit response")
+
+func add_ranking_entry_local(player_name: String, score: int, mode: GameMode):
 	var entry = {
 		"name": player_name.strip_edges(),
 		"score": score,
 		"timestamp": Time.get_unix_time_from_system()
 	}
-	
+
 	if mode == GameMode.NORMAL:
 		_normal_rankings.append(entry)
 		_normal_rankings.sort_custom(func(a, b): return a.score > b.score)
@@ -126,9 +249,8 @@ func add_ranking_entry(player_name: String, score: int, mode: GameMode) -> bool:
 		_time_attack_rankings.sort_custom(func(a, b): return a.score < b.score)
 		if _time_attack_rankings.size() > MAX_RANKING_ENTRIES:
 			_time_attack_rankings = _time_attack_rankings.slice(0, MAX_RANKING_ENTRIES)
-	
+
 	save_rankings()
-	return true
 
 func get_normal_rankings() -> Array:
 	return _normal_rankings.duplicate(true)
