@@ -325,6 +325,6 @@ horizontal_alignment = 1
 
 [node name="Title2" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "v1.01 うめざきをうめさきに修正"
+text = "ver 1.02 ランキング修正"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1

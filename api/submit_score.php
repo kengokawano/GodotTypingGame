@@ -1,8 +1,15 @@
 <?php
+// GZIP圧縮を無効化（Godot Web版との互換性のため）
+ini_set('zlib.output_compression', 'Off');
+if (function_exists('apache_setenv')) {
+    apache_setenv('no-gzip', '1');
+}
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *'); // Allow requests from any origin
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Content-Encoding: identity'); // 圧縮なし
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {

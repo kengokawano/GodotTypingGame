@@ -30,6 +30,14 @@ func _ready():
 	add_child(_http_get)
 	add_child(_http_post)
 
+	# GZIP圧縮を無効化（圧縮処理のエラーを回避）
+	_http_get.accept_gzip = false
+	_http_post.accept_gzip = false
+
+	# タイムアウトを設定
+	_http_get.timeout = 10.0
+	_http_post.timeout = 10.0
+
 	_http_get.request_completed.connect(_on_get_rankings_completed)
 	_http_post.request_completed.connect(_on_submit_score_completed)
 
@@ -54,31 +62,47 @@ func load_rankings():
 
 func load_rankings_from_api():
 	var url = api_base_url + "/get_rankings.php"
-	print("Loading rankings from API: ", url)
+	print("=== ATTEMPTING API LOAD ===")
+	print("URL: ", url)
+
+	# HTTPS証明書検証を無効化（本番では有効化推奨）
+	_http_get.set_tls_options(TLSOptions.client_unsafe())
 
 	var error = _http_get.request(url)
+	print("HTTP Request error code: ", error)
+
 	if error != OK:
-		printerr("Failed to send HTTP request: ", error)
+		printerr("!!! Failed to send HTTP request, error code: ", error)
+		printerr("!!! Falling back to local file...")
 		_is_loading = false
 		_load_complete = true
 		# フォールバック: ローカルから読み込み
 		load_rankings_from_local()
 
 func _on_get_rankings_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+	print("=== API RESPONSE RECEIVED ===")
+	print("Result code: ", result)
+	print("HTTP Response code: ", response_code)
+
 	_is_loading = false
 	_load_complete = true
 
 	if result != HTTPRequest.RESULT_SUCCESS:
-		printerr("HTTP Request failed: ", result)
+		printerr("!!! HTTP Request failed, result: ", result)
+		printerr("!!! Falling back to local file...")
 		load_rankings_from_local()  # フォールバック
 		return
 
 	if response_code != 200:
-		printerr("HTTP Response code: ", response_code)
+		printerr("!!! HTTP Response code: ", response_code)
+		var body_text = body.get_string_from_utf8()
+		printerr("!!! Response body: ", body_text)
+		printerr("!!! Falling back to local file...")
 		load_rankings_from_local()  # フォールバック
 		return
 
 	var json_string = body.get_string_from_utf8()
+	print("Response body: ", json_string)
 	var json = JSON.new()
 	var error = json.parse(json_string)
 
@@ -88,10 +112,13 @@ func _on_get_rankings_completed(result: int, response_code: int, headers: Packed
 			_normal_rankings = data.get("normal", [])
 			_time_attack_rankings = data.get("time_attack", [])
 			validate_and_fix_rankings()
-			print("Rankings loaded successfully from API")
+			print("✓ Rankings loaded successfully from API!")
+			print("Normal rankings: ", _normal_rankings.size())
+			print("Time attack rankings: ", _time_attack_rankings.size())
 			return
 
-	printerr("Failed to parse rankings JSON from API")
+	printerr("!!! Failed to parse rankings JSON from API")
+	printerr("!!! Falling back to local file...")
 	load_rankings_from_local()  # フォールバック
 
 func load_rankings_from_local():
@@ -217,10 +244,19 @@ func submit_score_to_api(player_name: String, score: int, mode: GameMode):
 	var json_string = JSON.stringify(data)
 	var headers = ["Content-Type: application/json"]
 
-	print("Submitting score to API: ", url)
+	print("=== SUBMITTING SCORE TO API ===")
+	print("URL: ", url)
+	print("Data: ", json_string)
+
+	# HTTPS証明書検証を無効化（本番では有効化推奨）
+	_http_post.set_tls_options(TLSOptions.client_unsafe())
+
 	var error = _http_post.request(url, headers, HTTPClient.METHOD_POST, json_string)
+	print("HTTP POST error code: ", error)
+
 	if error != OK:
-		printerr("Failed to send score to API: ", error)
+		printerr("!!! Failed to send score to API, error code: ", error)
+		printerr("!!! Falling back to local storage...")
 		_is_submitting = false
 		# フォールバック: ローカルに保存
 		add_ranking_entry_local(player_name, score, mode)

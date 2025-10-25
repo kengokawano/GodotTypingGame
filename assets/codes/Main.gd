@@ -136,15 +136,30 @@ func _input(event: InputEvent):
 func load_questions():
 	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
 	if _all_questions.is_empty():
-		var fallback_q = preload("res://assets/codes/Question.gd").new()
-		fallback_q.id = 0
-		fallback_q.No = "0"
-		fallback_q.Pos = "fallback"
-		fallback_q.text = "Fallback"
-		fallback_q.kana = "あ"
-		fallback_q.tags = ["fallback"]
-		fallback_q.era = 2025
-		_all_questions.append(fallback_q)
+		_all_questions.append(create_fallback_question())
+
+func validate_question(question) -> bool:
+	if question == null:
+		return false
+	# Resourceのプロパティを直接チェック
+	if not (question is Resource):
+		return false
+	if typeof(question.text) != TYPE_STRING or typeof(question.kana) != TYPE_STRING:
+		return false
+	if question.text.is_empty() or question.kana.is_empty():
+		return false
+	return true
+
+func create_fallback_question():
+	var fallback_q = preload("res://assets/codes/Question.gd").new()
+	fallback_q.id = 0
+	fallback_q.No = "0"
+	fallback_q.Pos = "fallback"
+	fallback_q.text = "問題読み込みエラー"
+	fallback_q.kana = "もんだいよみこみえらー"
+	fallback_q.tags = ["fallback"]
+	fallback_q.era = 2025
+	return fallback_q
 
 func start_normal():
 	start_game(GameMode.NORMAL)
@@ -161,14 +176,17 @@ func start_debug_mode(start_id: int, end_id: int):
 	_debug_questions = []
 	for id in range(start_id, end_id + 1):
 		var question = QuestionLoader.get_question_by_id(id)
-		if question:
+		if question and validate_question(question):
 			_debug_questions.append(question)
+		else:
+			printerr("Failed to load or validate question ID: %d" % id)
 
 	_debug_questions.sort_custom(func(a, b): return a.id < b.id)
 
 	if _debug_questions.is_empty():
-		printerr("No questions found in range %d-%d" % [start_id, end_id])
-		return
+		printerr("No valid questions found in range %d-%d" % [start_id, end_id])
+		# フォールバック問題を追加
+		_debug_questions.append(create_fallback_question())
 
 	start_game(GameMode.DEBUG)
 
@@ -208,7 +226,7 @@ func load_next_question():
 	_input_roman_index = 0
 	_candidate_romans = []
 
-	var question
+	var question = null
 	if _current_mode == GameMode.DEBUG:
 		if _debug_current_index >= _debug_questions.size():
 			finish_game()
@@ -219,10 +237,26 @@ func load_next_question():
 			finish_game()
 			return
 		var random_questions = QuestionLoader.get_random_questions(1)
-		question = random_questions[0] if not random_questions.is_empty() else _all_questions.pick_random()
+		if not random_questions.is_empty():
+			question = random_questions[0]
+		elif not _all_questions.is_empty():
+			question = _all_questions.pick_random()
 	else:
 		var random_questions = QuestionLoader.get_random_questions(1)
-		question = random_questions[0] if not random_questions.is_empty() else _all_questions.pick_random()
+		if not random_questions.is_empty():
+			question = random_questions[0]
+		elif not _all_questions.is_empty():
+			question = _all_questions.pick_random()
+
+	# 問題が取得できなかった場合はフォールバック
+	if question == null:
+		printerr("Failed to load question, using fallback")
+		question = create_fallback_question()
+
+	# 問題データの検証
+	if not validate_question(question):
+		printerr("Invalid question data, using fallback")
+		question = create_fallback_question()
 
 	_current_question_text = question.text
 	_current_question_era = str(question.era)
