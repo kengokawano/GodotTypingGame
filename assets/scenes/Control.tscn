@@ -321,11 +321,10 @@ text = "SE: ON"
 [node name="_sep2" type="Label" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-text = "2026 明治安田J1百年構想リーグにおけるトップチーム体制 追加"
 horizontal_alignment = 1
 
 [node name="Title2" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "ver 1.02 ランキング修正"
+text = "ver 1.03 2026年 新体制！！"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1
