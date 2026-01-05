@@ -92,52 +92,57 @@ static func create_questions_from_raw_data(start_index: int, count: int) -> Arra
 static func get_question_by_id(id: int) -> Resource:
 	# キャッシュから探す
 	if _cached_questions_by_id.has(id):
-		return _cached_questions_by_id[id]
-	
+		var cached_q = _cached_questions_by_id[id]
+		if is_valid_question(cached_q):
+			return cached_q
+
 	# キャッシュにない場合、rawデータから探して作成
 	for question_data in _raw_data_cache:
 		if question_data is Dictionary and question_data.get("id", 0) == id:
-			var q = QuestionResource.new()
-			q.id = question_data.get("id", 0)
-			q.No = question_data.get("No", "")
-			q.Pos = question_data.get("Pos", "")
-			q.text = question_data.get("text", "")
-			q.kana = question_data.get("kana", "")
-			q.tags = question_data.get("tags", [])
-			q.era = question_data.get("era", 0)
-			_cached_questions_by_id[id] = q
-			return q
-	
+			var q = create_question_from_data(question_data)
+			if q and is_valid_question(q):
+				_cached_questions_by_id[id] = q
+				return q
+
+	printerr("QuestionLoader: question with id %d not found or invalid" % id)
 	return null
 
 static func get_random_questions(count: int) -> Array:
 	if _raw_data_cache.is_empty():
+		printerr("QuestionLoader: raw data cache is empty")
 		return []
-	
+
 	# 全データからランダムに選択（キャッシュに関係なく）
 	var available_indices = range(_raw_data_cache.size())
 	available_indices.shuffle()
-	
+
 	var selected_questions: Array = []
 	var selected_count = min(count, available_indices.size())
-	
+
 	for i in range(selected_count):
 		var index = available_indices[i]
+		if index >= _raw_data_cache.size():
+			continue
+
 		var question_data = _raw_data_cache[index]
-		var id = question_data.get("id", 0)
-		
+		if not question_data is Dictionary:
+			continue
+
 		# 直接作成（キャッシュを経由しない）
 		var question = create_question_from_data(question_data)
-		if question:
+		if question and is_valid_question(question):
 			selected_questions.append(question)
-	
+
+	if selected_questions.is_empty():
+		printerr("QuestionLoader: failed to get any valid random questions")
+
 	return selected_questions
 
 # 単一の問題データから問題オブジェクトを作成
 static func create_question_from_data(question_data: Dictionary):
 	if not question_data is Dictionary:
 		return null
-	
+
 	var q = QuestionResource.new()
 	q.id = question_data.get("id", 0)
 	q.No = question_data.get("No", "")
@@ -147,6 +152,19 @@ static func create_question_from_data(question_data: Dictionary):
 	q.tags = question_data.get("tags", [])
 	q.era = question_data.get("era", 0)
 	return q
+
+# 問題データの検証
+static func is_valid_question(question) -> bool:
+	if question == null:
+		return false
+	# Resourceのプロパティを直接チェック
+	if not (question is Resource):
+		return false
+	if typeof(question.text) != TYPE_STRING or typeof(question.kana) != TYPE_STRING:
+		return false
+	if question.text.is_empty() or question.kana.is_empty():
+		return false
+	return true
 
 # No、Pos、Tag での抽出機能
 static func get_questions_by_no(no: String) -> Array:

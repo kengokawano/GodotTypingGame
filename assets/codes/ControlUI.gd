@@ -99,10 +99,14 @@ func _ready():
 	if GameData and btn_se_enabled:
 		btn_se_enabled.button_pressed = GameData.is_se_enabled()
 		update_se_button_text()
-	
+
+	# ランキング読み込み完了を待ってから表示
+	if GameData and GameData.ranking_manager:
+		await GameData.ranking_manager.wait_for_load_complete()
+
 	# ランキング表示の初期化
 	update_ranking_display()
-	
+
 	# ランキング登録チェック
 	check_ranking_eligibility()
 	
@@ -212,22 +216,28 @@ func on_ranking_register_pressed():
 	var player_name = ranking_name_input.text.strip_edges()
 	if player_name.is_empty():
 		return
-	
-	if GameData and GameData.add_to_ranking(player_name):
+
+	if GameData:
 		var score = GameData.get_score()
 		var is_time = GameData.is_time_score()
-		
-		ranking_panel.visible = false
-		update_ranking_display()
-		
-		# 成功メッセージを表示
-		if is_time:
-			la_score_label.text = "ランキング登録成功！クリアタイム: %s秒" % score
-		else:
-			la_score_label.text = "ランキング登録成功！スコア: %s" % score
-		
-		# ランキング登録後にスコアクリア
-		GameData.clear_score()
+
+		# API通信を待つ
+		var success = await GameData.add_to_ranking(player_name)
+
+		if success:
+			ranking_panel.visible = false
+
+			# API通信完了後に再描画
+			update_ranking_display()
+
+			# 成功メッセージを表示
+			if is_time:
+				la_score_label.text = "ランキング登録成功！クリアタイム: %s秒" % score
+			else:
+				la_score_label.text = "ランキング登録成功！スコア: %s" % score
+
+			# ランキング登録後にスコアクリア
+			GameData.clear_score()
 
 func on_ranking_close_pressed():
 	ranking_panel.visible = false
