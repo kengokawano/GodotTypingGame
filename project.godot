@@ -35,3 +35,7 @@ folder_colors={
 "res://assets/codes/": "orange",
 "res://assets/scenes/": "red"
 }
+
+[rendering]
+
+textures/vram_compression/import_etc2_astc=true
