@@ -435,8 +435,6 @@ func update_display():
 func handle_key_press(input_char: String):
 	if input_char.is_empty(): return
 
-	_total_key_presses += 1
-
 	var all_romans = _current_roman[_current_kana_index] if _current_roman.size() > _current_kana_index else []
 
 	if _input_roman_index == 0:
@@ -446,6 +444,7 @@ func handle_key_press(input_char: String):
 				_candidate_romans.append(r)
 		if not _candidate_romans.is_empty():
 			_input_roman_index = 1
+			_total_key_presses += 1
 			# 正確なキー入力時に音声を再生
 			if correct_key_audio and GameData and GameData.is_se_enabled():
 				correct_key_audio.play()
@@ -458,6 +457,7 @@ func handle_key_press(input_char: String):
 		if not next_candidates.is_empty():
 			_candidate_romans = next_candidates
 			_input_roman_index += 1
+			_total_key_presses += 1
 			# 正確なキー入力時に音声を再生
 			if correct_key_audio and GameData and GameData.is_se_enabled():
 				correct_key_audio.play()
