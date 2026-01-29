@@ -55,6 +55,7 @@ var _current_roman: Array[Array] = []
 var _current_kana_index: int = 0
 var _candidate_romans: Array = []
 var _input_roman_index: int = 0
+var _load_status_msg: String = "Loading..."
 
 # デバッグモード用
 var _debug_questions: Array = []
@@ -92,11 +93,16 @@ func initialize_game_deferred():
 		add_child(RomanTypingParser)
 
 	RomanTypingParser.read_json_file()
-	load_questions()
 	
-	# アニメーション設定をキャッシュ（軽量化）
+	# 1. まず内蔵データを即座に読み込んでゲームを開始する（待ち時間ゼロ）
+	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
+	if _all_questions.is_empty():
+		_all_questions.append(create_fallback_question())
+	
+	# アニメーション設定をキャッシュ
 	_cached_animation_count = available_animations.size()
 
+	# ゲームモードの初期化（内蔵データで先行スタート）
 	if GameData and GameData.is_debug_mode:
 		start_debug_from_game_data.call_deferred()
 	elif GameData:
@@ -109,6 +115,26 @@ func initialize_game_deferred():
 			start_normal.call_deferred()
 	else:
 		start_normal.call_deferred()
+
+	# 2. バックグラウンドで外部データを取得し、完了したら差し替える
+	QuestionLoader.load_questions_external_async(self, _on_background_questions_loaded)
+
+func _on_background_questions_loaded(questions: Array, status_msg: String = ""):
+	# 外部ロード失敗、かつフォールバックで内蔵データを返してきた場合（内容は今のと同じ）は無視してもいいが
+	# キャッシュがクリアされて再生成されているので、一応更新しておくのが無難
+	
+	# 空っぽなら更新しない
+	if questions.is_empty():
+		return
+		
+	_all_questions = questions
+	print("Background questions update: ", status_msg)
+	
+	# もしこれが「成功」なら、こっそり通知出してもいいかもしれないが、
+	# プレイの邪魔にならないようログ出力にとどめる
+	if "Success" in status_msg:
+		pass 
+
 
 func _input(event: InputEvent):
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -133,10 +159,8 @@ func _input(event: InputEvent):
 			elif key_string in ["slash", "kp_divide"]:
 				handle_key_press("/")
 
-func load_questions():
-	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
-	if _all_questions.is_empty():
-		_all_questions.append(create_fallback_question())
+# load_questions is replaced by _on_questions_loaded logic via async call
+# func load_questions(): unused
 
 func validate_question(question) -> bool:
 	if question == null:
@@ -311,7 +335,7 @@ func return_to_title():
 func update_display():
 	if not _is_game_started:
 		question_label.text = "Typing Game"
-		info_text.text = ""
+		info_text.text = _load_status_msg
 		kana_progress_label.text = ""
 		kana_label.text = "Press a button to start"
 		time_label.text = ""

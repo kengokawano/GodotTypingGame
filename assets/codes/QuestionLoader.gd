@@ -14,6 +14,101 @@ static var _cache_loaded: bool = false
 @export var cache_size_limit: int = 500  # キャッシュする問題数の上限
 @export var initial_load_limit: int = 50  # 初回読み込み問題数
 
+static func load_questions_external_async(context: Node, on_complete: Callable):
+	# Webの場合: HTTPRequestを使って外部JSONを取得
+	if OS.has_feature("web"):
+		var http = HTTPRequest.new()
+		context.add_child(http)
+		http.request_completed.connect(func(result, response_code, headers, body):
+			if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
+				var json_string = body.get_string_from_utf8()
+				print("Loaded external questions from web")
+				var questions = _parse_and_load_json(json_string)
+				http.queue_free()
+				on_complete.call(questions, "External (Web) Success")
+				return
+			
+			var msg = "External load failed (Web). Code: %s" % response_code
+			print(msg)
+			http.queue_free()
+			var questions = load_questions_from_file("res://assets/data/questions.json")
+			on_complete.call(questions, "Fallback (Web) - " + msg)
+		)
+		
+		# 同階層のquestions.jsonを取得試行
+
+		# GodotのHTTPRequestは相対パスを受け付けない場合があるため、絶対パスを構築する
+		var url = "questions.json"
+		
+		# OS.has_feature("javascript") が false を返しているが、Webエクスポートなら JavaScriptBridge は使えるはず
+		# そのため、web フラグのみで判定するように変更
+		if OS.has_feature("web"):
+			# JavaScriptを使って現在のURLパスを取得
+			var href = JavaScriptBridge.eval("window.location.href")
+			if href and href is String:
+				var base_url = href.substr(0, href.rfind("/") + 1)
+				url = base_url + "questions.json"
+		
+		# キャッシュバスティング
+		url += "?t=" + str(Time.get_unix_time_from_system())
+		
+		var error = http.request(url)
+		if error != OK:
+			print("HTTPRequest error: ", error)
+			var questions = load_questions_from_file("res://assets/data/questions.json")
+			on_complete.call(questions, "Fallback (WebReqErr) - %s" % error)
+			
+	# デスクトップの場合: 実行ファイル横のJSONを確認
+	else:
+		var exe_dir = OS.get_executable_path().get_base_dir()
+		var external_path = exe_dir.path_join("questions.json")
+		
+		# エディタ実行時はプロジェクトルートを見る（デバッグ用）
+		if OS.has_feature("editor"):
+			# プロジェクトルートのquestions.jsonを探す
+			# res:// はエクスポート時に梱包されるので、FileAccessで見るなら
+			# プロジェクトディレクトリ直下を見る必要があるが、
+			# Editor上では res://questions.json は存在しない（assets/dataにある）
+			# 本番を想定して、res://... ではなく絶対パスで探す挙動に変えるのは難しい
+			# 簡易的に、user:// または res:// 直下を擬似的に見る
+			pass
+
+		if FileAccess.file_exists(external_path):
+			print("Loaded external questions from: ", external_path)
+			# キャッシュクリアしてから読み込む
+			if _cache_loaded:
+				clear_cache()
+			var questions = load_questions_from_file(external_path)
+			on_complete.call(questions, "External (File) Success: " + external_path)
+		else:
+			print("External file not found at ", external_path, ", using internal.")
+			var questions = load_questions_from_file("res://assets/data/questions.json")
+			on_complete.call(questions, "Fallback (FileNotFound) - " + external_path)
+
+static func _parse_and_load_json(json_string: String) -> Array:
+	if _cache_loaded:
+		clear_cache()
+		
+	if json_string.is_empty():
+		return []
+
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	if error != OK:
+		printerr("JSON Parse Error: ", json.get_error_message())
+		return []
+
+	var data = json.get_data()
+	if not data is Array:
+		return []
+
+	_raw_data_cache = data
+	_cache_loaded = true
+	
+	var initial_load_count = min(data.size(), 20)
+	_cached_questions = create_questions_from_raw_data(0, initial_load_count)
+	return _cached_questions
+
 static func load_questions_from_file(file_path: String) -> Array:
 	if _cache_loaded and not _cached_questions.is_empty():
 		return _cached_questions
