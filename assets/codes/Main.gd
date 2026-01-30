@@ -451,6 +451,9 @@ func handle_key_press(input_char: String):
 		else:
 			_combo_count = 0
 			_miss_count += 1
+			# NORMALモードではミス時にスコアを-1
+			if _current_mode == GameMode.NORMAL:
+				_total_key_presses -= 1
 	else:
 		var next_candidates = _candidate_romans.filter(func(r): return r.length() > _input_roman_index and r[_input_roman_index] == input_char)
 
@@ -465,6 +468,10 @@ func handle_key_press(input_char: String):
 			# 間違った文字が入力された場合、現在の状態を維持（無視）
 			_combo_count = 0
 			_miss_count += 1
+			# NORMALモードではミス時にスコアを-1
+			if _current_mode == GameMode.NORMAL:
+				_total_key_presses -= 1
+			update_display()
 			return
 
 	var completed = false
