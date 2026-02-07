@@ -62,6 +62,7 @@ var _debug_questions: Array = []
 var _debug_start_id: int = 0
 var _debug_end_id: int = 0
 var _debug_current_index: int = 0
+var _pending_debug_start: bool = false
 
 # シングルトンへの参照
 var GameData = null
@@ -104,7 +105,7 @@ func initialize_game_deferred():
 
 	# ゲームモードの初期化（内蔵データで先行スタート）
 	if GameData and GameData.is_debug_mode:
-		start_debug_from_game_data.call_deferred()
+		_pending_debug_start = true
 	elif GameData:
 		var selected_mode = GameData.get_game_mode()
 		if selected_mode == GameData.GameMode.NORMAL:
@@ -125,10 +126,17 @@ func _on_background_questions_loaded(questions: Array, status_msg: String = ""):
 	
 	# 空っぽなら更新しない
 	if questions.is_empty():
+		if _pending_debug_start:
+			_pending_debug_start = false
+			start_debug_from_game_data.call_deferred()
 		return
 		
 	_all_questions = questions
 	print("Background questions update: ", status_msg)
+
+	if _pending_debug_start:
+		_pending_debug_start = false
+		start_debug_from_game_data.call_deferred()
 	
 	# もしこれが「成功」なら、こっそり通知出してもいいかもしれないが、
 	# プレイの邪魔にならないようログ出力にとどめる

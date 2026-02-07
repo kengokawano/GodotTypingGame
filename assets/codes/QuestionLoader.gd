@@ -62,6 +62,12 @@ static func load_questions_external_async(context: Node, on_complete: Callable):
 	else:
 		var exe_dir = OS.get_executable_path().get_base_dir()
 		var external_path = exe_dir.path_join("questions.json")
+
+		if OS.has_feature("editor") and FileAccess.file_exists("res://questions.json"):
+			external_path = "res://questions.json"
+
+		if OS.has_feature("editor") and FileAccess.file_exists("res://web/apps/typing/questions.json"):
+			external_path = "res://web/apps/typing/questions.json"
 		
 		# エディタ実行時はプロジェクトルートを見る（デバッグ用）
 		if OS.has_feature("editor"):
