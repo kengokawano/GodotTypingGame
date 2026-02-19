@@ -183,6 +183,8 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 placeholder_text = "プレイヤー名"
 max_length = 10
+caret_blink = true
+caret_blink_interval = 0.5
 
 [node name="btnRankingRegister" type="Button" parent="RankingPanel"]
 layout_mode = 0
