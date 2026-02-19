@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] != 'POST') {
 }
 
 $rankingFile = 'rankings.json';
-$maxEntries = 5;
+$maxEntries = 10;
 
 // Get the posted data
 $json_data = file_get_contents('php://input');

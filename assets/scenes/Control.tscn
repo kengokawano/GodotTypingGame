@@ -34,7 +34,7 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.7, 0.3, 0.3, 1)
+color = Color(0.678431, 0.129412, 0, 1)
 
 [node name="LowerBackground" type="ColorRect" parent="Background"]
 layout_mode = 0
@@ -43,7 +43,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.5, 0.5, 0.5, 1)
+color = Color(0.501961, 0.501961, 0.501961, 1)
 
 [node name="DebugPanel" type="Panel" parent="."]
 visible = false
@@ -204,56 +204,63 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 text = "閉じる"
 
-[node name="RankingDisplay" type="VBoxContainer" parent="."]
-offset_left = 30.0
-offset_top = 30.0
-offset_right = 330.0
-offset_bottom = 434.0
+[node name="RankingDisplay" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="NormalRanking" type="VBoxContainer" parent="RankingDisplay"]
-layout_mode = 2
+layout_mode = 1
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 300.0
+offset_bottom = 580.0
 
 [node name="NormalTitle" type="Label" parent="RankingDisplay/NormalRanking"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 20
-text = "ノーマル Top5"
+text = "ノーマル Top10"
 horizontal_alignment = 1
 
 [node name="NormalList" type="RichTextLabel" parent="RankingDisplay/NormalRanking"]
-custom_minimum_size = Vector2(280, 150)
+custom_minimum_size = Vector2(280, 350)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vxiwm")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
-text = "1. Player - 1000
-2. Player2 - 900
-3. Player3 - 800"
+text = "読み込み中..."
 scroll_active = false
 
-[node name="VSeparator" type="Control" parent="RankingDisplay"]
-custom_minimum_size = Vector2(0, 20)
-layout_mode = 2
-
 [node name="TimeAttackRanking" type="VBoxContainer" parent="RankingDisplay"]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 80.0
+offset_right = -20.0
+offset_bottom = 580.0
+grow_horizontal = 0
 
 [node name="TimeAttackTitle" type="Label" parent="RankingDisplay/TimeAttackRanking"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 20
-text = "タイムアタック Top5"
+text = "タイムアタック Top10"
 horizontal_alignment = 1
 
 [node name="TimeAttackList" type="RichTextLabel" parent="RankingDisplay/TimeAttackRanking"]
-custom_minimum_size = Vector2(280, 150)
+custom_minimum_size = Vector2(280, 350)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vxiwm")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
-text = "1. FastPlayer - 45秒
-2. QuickPlayer - 52秒
-3. SpeedPlayer - 58秒"
+text = "読み込み中..."
 scroll_active = false
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
@@ -325,6 +332,6 @@ horizontal_alignment = 1
 
 [node name="Title2" type="Label" parent="VBoxContainer"]
 layout_mode = 2
-text = "ver 1.03 2026年 新体制！！"
+text = "ver 1.04 ランキング数変更"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1

@@ -57,6 +57,10 @@ var _candidate_romans: Array = []
 var _input_roman_index: int = 0
 var _load_status_msg: String = "Loading..."
 
+# 出題デッキ（重複回避用）
+var _question_deck: Array = []      # シャッフルされたインデックスのデッキ
+var _deck_position: int = 0          # デッキの現在位置
+
 # デバッグモード用
 var _debug_questions: Array = []
 var _debug_start_id: int = 0
@@ -238,6 +242,9 @@ func start_game(mode: GameMode):
 	_input_roman_index = 0
 	_candidate_romans = []
 
+	# 出題デッキをリセット＆シャッフル
+	_reset_question_deck()
+
 	if _current_mode == GameMode.NORMAL:
 		_remaining_time_in_seconds = normal_time_limit
 	elif _current_mode == GameMode.TIME_ATTACK:
@@ -252,6 +259,40 @@ func start_game(mode: GameMode):
 	
 	# プレイヤーアニメーション開始（ランダム選択）
 	play_random_animation()
+
+func _reset_question_deck():
+	# rawデータのインデックスをシャッフルしてデッキを作成
+	var total = QuestionLoader._raw_data_cache.size()
+	if total == 0:
+		# rawデータがない場合は_all_questionsから作成
+		total = _all_questions.size()
+	_question_deck = range(total)
+	_question_deck.shuffle()
+	_deck_position = 0
+
+func _get_next_question_from_deck():
+	# デッキが空、または全部引いた場合はリセット
+	if _question_deck.is_empty():
+		_reset_question_deck()
+	if _deck_position >= _question_deck.size():
+		_question_deck.shuffle()
+		_deck_position = 0
+
+	var index = _question_deck[_deck_position]
+	_deck_position += 1
+
+	# rawデータがあればそこから取得
+	if not QuestionLoader._raw_data_cache.is_empty():
+		if index < QuestionLoader._raw_data_cache.size():
+			var question_data = QuestionLoader._raw_data_cache[index]
+			if question_data is Dictionary:
+				return QuestionLoader.create_question_from_data(question_data)
+	# フォールバック: _all_questions から取得
+	elif not _all_questions.is_empty():
+		index = index % _all_questions.size()
+		return _all_questions[index]
+
+	return null
 
 func load_next_question():
 	_current_kana_index = 0
@@ -268,17 +309,9 @@ func load_next_question():
 		if _questions_completed >= time_attack_question_count:
 			finish_game()
 			return
-		var random_questions = QuestionLoader.get_random_questions(1)
-		if not random_questions.is_empty():
-			question = random_questions[0]
-		elif not _all_questions.is_empty():
-			question = _all_questions.pick_random()
+		question = _get_next_question_from_deck()
 	else:
-		var random_questions = QuestionLoader.get_random_questions(1)
-		if not random_questions.is_empty():
-			question = random_questions[0]
-		elif not _all_questions.is_empty():
-			question = _all_questions.pick_random()
+		question = _get_next_question_from_deck()
 
 	# 問題が取得できなかった場合はフォールバック
 	if question == null:

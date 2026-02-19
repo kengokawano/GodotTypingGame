@@ -3,7 +3,7 @@ extends Node
 
 enum GameMode { NORMAL, TIME_ATTACK }
 
-const MAX_RANKING_ENTRIES = 5
+const MAX_RANKING_ENTRIES = 10
 
 # API設定（インスペクターで変更可能）
 @export var api_base_url: String = "https://orange.saitama.jp/type/apps/typing/api"
