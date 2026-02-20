@@ -40,7 +40,7 @@ var _current_mode = GameMode.NONE
 var _remaining_time_in_seconds: int = 0
 var _questions_completed: int = 0
 var _is_game_started: bool = false
-var _elapsed_time_in_seconds: int = 0
+var _elapsed_time: float = 0.0
 var _combo_count: int = 0
 var _total_key_presses: int = 0
 var _miss_count: int = 0
@@ -77,6 +77,11 @@ const QuestionLoader = preload("res://assets/codes/QuestionLoader.gd")
 var _cached_animation_count: int = 0
 var _animation_usage_count: Dictionary = {}  # 使用頻度追跡
 var _preloaded_animations: Dictionary = {}  # プリロードされたアニメーション
+
+func _process(delta):
+	if _is_game_started and (_current_mode == GameMode.TIME_ATTACK or _current_mode == GameMode.DEBUG):
+		_elapsed_time += delta
+		score_label.text = "%.1f秒" % _elapsed_time
 
 func _ready():
 	# Autoloadされたシングルトンを取得
@@ -248,10 +253,10 @@ func start_game(mode: GameMode):
 	if _current_mode == GameMode.NORMAL:
 		_remaining_time_in_seconds = normal_time_limit
 	elif _current_mode == GameMode.TIME_ATTACK:
-		_elapsed_time_in_seconds = 0
+		_elapsed_time = 0.0
 		_questions_completed = 0
 	elif _current_mode == GameMode.DEBUG:
-		_elapsed_time_in_seconds = 0
+		_elapsed_time = 0.0
 		_questions_completed = 0
 
 	load_next_question()
@@ -346,7 +351,7 @@ func finish_game():
 	# リソースクリーンアップ
 	cleanup_resources()
 
-	var final_score = _total_key_presses if _current_mode == GameMode.NORMAL else _elapsed_time_in_seconds
+	var final_score = _total_key_presses if _current_mode == GameMode.NORMAL else int(_elapsed_time * 1000)
 	var is_time_score = _current_mode == GameMode.TIME_ATTACK
 	if GameData:
 		GameData.set_score(final_score, is_time_score)
@@ -465,7 +470,7 @@ func update_display():
 		mode_label.text = "NORMAL"
 	elif _current_mode == GameMode.TIME_ATTACK:
 		time_label.text = "%s/%s" % [_questions_completed + 1, time_attack_question_count]
-		score_label.text = "%s秒" % _elapsed_time_in_seconds
+		score_label.text = "%.1f秒" % _elapsed_time
 		mode_label.text = "TIME ATTACK"
 	elif _current_mode == GameMode.DEBUG:
 		var current_id = _debug_questions[_debug_current_index].id if _debug_current_index < _debug_questions.size() else -1
@@ -676,9 +681,7 @@ func format_kana_progress_with_line_breaks(rich_text: String, max_display_chars_
 	return result
 
 func on_game_timer_timeout():
-	if _current_mode == GameMode.TIME_ATTACK:
-		_elapsed_time_in_seconds += 1
-	elif _current_mode == GameMode.NORMAL:
+	if _current_mode == GameMode.NORMAL:
 		_remaining_time_in_seconds -= 1
 		if _remaining_time_in_seconds <= 0:
 			finish_game()

@@ -88,7 +88,7 @@ func _ready():
 	if GameData and GameData.has_valid_score():
 		var score = GameData.get_score()
 		if GameData.is_time_score():
-			la_score_label.text = "クリアタイム: %s秒" % score
+			la_score_label.text = "クリアタイム: %.1f秒" % (score / 1000.0)
 		else:
 			la_score_label.text = "あなたのスコア: %s" % score
 		# ランキング登録処理後にクリア（check_ranking_eligibilityの後）
@@ -222,7 +222,7 @@ func show_ranking_registration():
 	
 	var score = GameData.get_score()
 	var mode_text = "TIME ATTACK" if GameData.is_time_score() else "NORMAL"
-	var score_text = "%s秒" % score if GameData.is_time_score() else str(score)
+	var score_text = "%.1f秒" % (score / 1000.0) if GameData.is_time_score() else str(score)
 	
 	ranking_score_label.text = "%s - スコア: %s" % [mode_text, score_text]
 	ranking_name_input.text = ""
@@ -269,7 +269,7 @@ func on_ranking_register_pressed():
 
 			# 成功メッセージを表示
 			if is_time:
-				la_score_label.text = "ランキング登録成功！クリアタイム: %s秒" % score
+				la_score_label.text = "ランキング登録成功！クリアタイム: %.1f秒" % (score / 1000.0)
 			else:
 				la_score_label.text = "ランキング登録成功！スコア: %s" % score
 
@@ -421,34 +421,43 @@ func update_ranking_display():
 			rl.append_text("[center]記録なし[/center]")
 			return
 		
+		rl.push_table(2)
 		for i in range(rankings.size()):
 			var entry = rankings[i]
 			var rank_num = i + 1
 			var color_code = "#FFFFFF"
 			var prefix = ""
-			
-			if rank_num == 1: 
+
+			if rank_num == 1:
 				color_code = "#FFD700" # Gold
-				prefix = "👑 "
-			elif rank_num == 2: 
+				prefix = " 1. "
+			elif rank_num == 2:
 				color_code = "#C0C0C0" # Silver
-				prefix = "🥈 "
-			elif rank_num == 3: 
-				color_code = "#CD7F32" # Bronze
-				prefix = "🥉 "
+				prefix = " 2. "
+			elif rank_num == 3:
+				color_code = "#FF8C00" # Bronze
+				prefix = " 3. "
 			else:
 				prefix = "%2d. " % rank_num
-			
-			var score_suffix = "秒" if is_time else ""
+
 			var name_str = str(entry.name).left(10)
-			
-			# push/popメソッドを使用してBBCodeを構築（タグの閉じ忘れやミスを防ぐ）
-			rl.push_color(Color(color_code))
-			if rank_num == 1: rl.push_bold()
-			rl.add_text("%s%-10s : %s%s" % [prefix, name_str, entry.score, score_suffix])
-			if rank_num == 1: rl.pop()
+			var col = Color(color_code)
+			var score_text = "%.1f秒" % (entry.score / 1000.0) if is_time else str(entry.score)
+
+			# 名前セル
+			rl.push_cell()
+			rl.push_color(col)
+			rl.add_text("%s%s" % [prefix, name_str])
 			rl.pop()
-			rl.newline()
+			rl.pop()
+
+			# スコアセル
+			rl.push_cell()
+			rl.push_color(col)
+			rl.add_text(": %s" % score_text)
+			rl.pop()
+			rl.pop()
+		rl.pop()
 	
 	update_list.call(normal_ranking_list, GameData.ranking_manager.get_normal_rankings(), false)
 	update_list.call(time_attack_ranking_list, GameData.ranking_manager.get_time_attack_rankings(), true)

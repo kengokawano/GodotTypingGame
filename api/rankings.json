@@ -1,9 +1,14 @@
 {
     "normal": [
         {
-            "name": "浦和の民",
+            "name": "\u6d66\u548c\u306e\u6c11",
             "score": 134,
             "timestamp": 0
+        },
+        {
+            "name": "\u5927\u5bae\u4eba",
+            "score": 133,
+            "timestamp": 1771463953
         },
         {
             "name": "s",
@@ -11,46 +16,56 @@
             "timestamp": 0
         },
         {
-            "name": "そうあ",
+            "name": "\u305d\u3046\u3042",
             "score": 107,
             "timestamp": 0
         },
         {
-            "name": "そうあ",
+            "name": "\u305d\u3046\u3042",
             "score": 103,
             "timestamp": 0
         },
         {
-            "name": "そうあ",
+            "name": "\u305d\u3046\u3042",
             "score": 101,
             "timestamp": 0
+        },
+        {
+            "name": "\u30cf\u30ed\u30fc",
+            "score": 83,
+            "timestamp": 1771549143
         }
     ],
     "time_attack": [
         {
-            "name": "さヴぃおまん",
-            "score": 24,
+            "name": "\u3055\u30f4\u3043\u304a\u307e\u3093",
+            "score": 24000,
             "timestamp": 0
         },
         {
-            "name": "強いぞ",
-            "score": 29,
+            "name": "\u5f37\u3044\u305e",
+            "score": 29000,
             "timestamp": 0
         },
         {
-            "name": "t天才勘太様",
-            "score": 29,
+            "name": "t\u5929\u624d\u52d8\u592a\u69d8",
+            "score": 29000,
             "timestamp": 0
         },
         {
             "name": "tetusikko",
-            "score": 30,
+            "score": 30000,
             "timestamp": 0
         },
         {
-            "name": "負けないよ",
-            "score": 31,
+            "name": "\u8ca0\u3051\u306a\u3044\u3088",
+            "score": 31000,
             "timestamp": 0
+        },
+        {
+            "name": "Yea",
+            "score": 47644,
+            "timestamp": 1771549928
         }
     ]
 }

@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cv5ohpdtk3k2i"]
+[gd_scene format=3 uid="uid://cv5ohpdtk3k2i"]
 
 [ext_resource type="Script" uid="uid://dpolr6jmmn1o8" path="res://assets/codes/ControlUI.gd" id="1_vxiwm"]
 [ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="2_vxiwm"]
@@ -16,10 +16,10 @@ font_size = 48
 font = ExtResource("2_vxiwm")
 font_size = 32
 
-[node name="CanvasLayer" type="CanvasLayer"]
+[node name="CanvasLayer" type="CanvasLayer" unique_id=730091158]
 script = ExtResource("1_vxiwm")
 
-[node name="Background" type="Control" parent="."]
+[node name="Background" type="Control" parent="." unique_id=660540902]
 z_index = -100
 layout_mode = 3
 anchors_preset = 15
@@ -28,7 +28,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="UpperBackground" type="ColorRect" parent="Background"]
+[node name="UpperBackground" type="ColorRect" parent="Background" unique_id=1506889174]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 0.5
@@ -36,7 +36,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.678431, 0.129412, 0, 1)
 
-[node name="LowerBackground" type="ColorRect" parent="Background"]
+[node name="LowerBackground" type="ColorRect" parent="Background" unique_id=2033986284]
 layout_mode = 0
 anchor_top = 0.5
 anchor_right = 1.0
@@ -45,7 +45,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.501961, 0.501961, 0.501961, 1)
 
-[node name="DebugPanel" type="Panel" parent="."]
+[node name="DebugPanel" type="Panel" parent="." unique_id=1186254072]
 visible = false
 anchors_preset = 3
 anchor_left = 1.0
@@ -55,7 +55,7 @@ anchor_bottom = 1.0
 offset_left = -350.0
 offset_top = -300.0
 
-[node name="DebugTitle" type="Label" parent="DebugPanel"]
+[node name="DebugTitle" type="Label" parent="DebugPanel" unique_id=146140079]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
@@ -66,7 +66,7 @@ theme_override_font_sizes/font_size = 24
 text = "Debug Mode"
 horizontal_alignment = 1
 
-[node name="StartIdLabel" type="Label" parent="DebugPanel"]
+[node name="StartIdLabel" type="Label" parent="DebugPanel" unique_id=539849506]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 80.0
@@ -76,7 +76,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "Start ID:"
 
-[node name="StartIdInput" type="LineEdit" parent="DebugPanel"]
+[node name="StartIdInput" type="LineEdit" parent="DebugPanel" unique_id=1536959277]
 layout_mode = 0
 offset_left = 130.0
 offset_top = 80.0
@@ -86,7 +86,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "0"
 
-[node name="EndIdLabel" type="Label" parent="DebugPanel"]
+[node name="EndIdLabel" type="Label" parent="DebugPanel" unique_id=1981768207]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 130.0
@@ -96,7 +96,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "End ID:"
 
-[node name="EndIdInput" type="LineEdit" parent="DebugPanel"]
+[node name="EndIdInput" type="LineEdit" parent="DebugPanel" unique_id=216979599]
 layout_mode = 0
 offset_left = 130.0
 offset_top = 130.0
@@ -106,7 +106,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "10"
 
-[node name="btnDebugStart" type="Button" parent="DebugPanel"]
+[node name="btnDebugStart" type="Button" parent="DebugPanel" unique_id=781471836]
 layout_mode = 0
 offset_left = 50.0
 offset_top = 180.0
@@ -116,7 +116,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "Debug Start"
 
-[node name="btnDebugClose" type="Button" parent="DebugPanel"]
+[node name="btnDebugClose" type="Button" parent="DebugPanel" unique_id=1296894328]
 layout_mode = 0
 offset_left = 220.0
 offset_top = 180.0
@@ -126,7 +126,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 18
 text = "Close"
 
-[node name="RankingPanel" type="Panel" parent="."]
+[node name="RankingPanel" type="Panel" parent="." unique_id=405446199]
 visible = false
 z_index = 4096
 anchors_preset = 8
@@ -141,7 +141,7 @@ offset_bottom = 50.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="RankingTitle" type="Label" parent="RankingPanel"]
+[node name="RankingTitle" type="Label" parent="RankingPanel" unique_id=722849554]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 20.0
@@ -152,7 +152,7 @@ theme_override_font_sizes/font_size = 24
 text = "ランキング登録"
 horizontal_alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="RankingPanel"]
+[node name="ScoreLabel" type="Label" parent="RankingPanel" unique_id=1962950418]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 70.0
@@ -163,7 +163,7 @@ theme_override_font_sizes/font_size = 18
 text = "スコア: 1000"
 horizontal_alignment = 1
 
-[node name="NameLabel" type="Label" parent="RankingPanel"]
+[node name="NameLabel" type="Label" parent="RankingPanel" unique_id=1699286660]
 layout_mode = 0
 offset_left = 20.0
 offset_top = 110.0
@@ -173,7 +173,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 text = "名前:"
 
-[node name="NameInput" type="LineEdit" parent="RankingPanel"]
+[node name="NameInput" type="LineEdit" parent="RankingPanel" unique_id=289797931]
 layout_mode = 0
 offset_left = 130.0
 offset_top = 110.0
@@ -186,7 +186,7 @@ max_length = 10
 caret_blink = true
 caret_blink_interval = 0.5
 
-[node name="btnRankingRegister" type="Button" parent="RankingPanel"]
+[node name="btnRankingRegister" type="Button" parent="RankingPanel" unique_id=972332342]
 layout_mode = 0
 offset_left = 50.0
 offset_top = 180.0
@@ -196,7 +196,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 text = "登録"
 
-[node name="btnRankingClose" type="Button" parent="RankingPanel"]
+[node name="btnRankingClose" type="Button" parent="RankingPanel" unique_id=630120737]
 layout_mode = 0
 offset_left = 200.0
 offset_top = 180.0
@@ -206,7 +206,7 @@ theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 text = "閉じる"
 
-[node name="RankingDisplay" type="Control" parent="."]
+[node name="RankingDisplay" type="Control" parent="." unique_id=993874068]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -215,21 +215,21 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="NormalRanking" type="VBoxContainer" parent="RankingDisplay"]
+[node name="NormalRanking" type="VBoxContainer" parent="RankingDisplay" unique_id=1754067607]
 layout_mode = 1
 offset_left = 20.0
 offset_top = 80.0
 offset_right = 300.0
 offset_bottom = 580.0
 
-[node name="NormalTitle" type="Label" parent="RankingDisplay/NormalRanking"]
+[node name="NormalTitle" type="Label" parent="RankingDisplay/NormalRanking" unique_id=626608243]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 20
 text = "ノーマル Top10"
 horizontal_alignment = 1
 
-[node name="NormalList" type="RichTextLabel" parent="RankingDisplay/NormalRanking"]
+[node name="NormalList" type="RichTextLabel" parent="RankingDisplay/NormalRanking" unique_id=2031408593]
 custom_minimum_size = Vector2(280, 350)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vxiwm")
@@ -238,7 +238,7 @@ bbcode_enabled = true
 text = "読み込み中..."
 scroll_active = false
 
-[node name="TimeAttackRanking" type="VBoxContainer" parent="RankingDisplay"]
+[node name="TimeAttackRanking" type="VBoxContainer" parent="RankingDisplay" unique_id=975759589]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -249,14 +249,14 @@ offset_right = -20.0
 offset_bottom = 580.0
 grow_horizontal = 0
 
-[node name="TimeAttackTitle" type="Label" parent="RankingDisplay/TimeAttackRanking"]
+[node name="TimeAttackTitle" type="Label" parent="RankingDisplay/TimeAttackRanking" unique_id=694515643]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 20
 text = "タイムアタック Top10"
 horizontal_alignment = 1
 
-[node name="TimeAttackList" type="RichTextLabel" parent="RankingDisplay/TimeAttackRanking"]
+[node name="TimeAttackList" type="RichTextLabel" parent="RankingDisplay/TimeAttackRanking" unique_id=102404082]
 custom_minimum_size = Vector2(280, 350)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vxiwm")
@@ -265,7 +265,7 @@ bbcode_enabled = true
 text = "読み込み中..."
 scroll_active = false
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=989818777]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -273,67 +273,67 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="_sep" type="Label" parent="VBoxContainer"]
+[node name="_sep" type="Label" parent="VBoxContainer" unique_id=762742611]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="Title" type="Label" parent="VBoxContainer"]
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=407511931]
 layout_mode = 2
 text = "Football Typing"
 label_settings = SubResource("LabelSettings_nw7le")
 horizontal_alignment = 1
 
-[node name="laScore" type="Label" parent="VBoxContainer"]
+[node name="laScore" type="Label" parent="VBoxContainer" unique_id=6536143]
 custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 text = "Spaceキーで開始"
 label_settings = SubResource("LabelSettings_8kh01")
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer" unique_id=818533311]
 layout_mode = 2
 alignment = 1
 
-[node name="btnDebugToggle" type="Button" parent="VBoxContainer/HBoxContainer"]
+[node name="btnDebugToggle" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=765812627]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
 text = "Debug"
 
-[node name="btnStart" type="Button" parent="VBoxContainer/HBoxContainer"]
+[node name="btnStart" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=2061087530]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 32
 text = "Start"
 
-[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="VBoxContainer" unique_id=36955060]
 layout_mode = 2
 
-[node name="ModeSelection" type="VBoxContainer" parent="VBoxContainer/CenterContainer"]
+[node name="ModeSelection" type="VBoxContainer" parent="VBoxContainer/CenterContainer" unique_id=1755289232]
 layout_mode = 2
 alignment = 2
 
-[node name="btnNormal" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection"]
+[node name="btnNormal" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection" unique_id=641479500]
 layout_mode = 2
 text = "Normal"
 
-[node name="btnTimeAttack" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection"]
+[node name="btnTimeAttack" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection" unique_id=2060131733]
 layout_mode = 2
 text = "Time Attack"
 
-[node name="btnSEEnabled" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection"]
+[node name="btnSEEnabled" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection" unique_id=311430989]
 layout_mode = 2
 button_pressed = true
 text = "SE: ON"
 
-[node name="_sep2" type="Label" parent="VBoxContainer"]
+[node name="_sep2" type="Label" parent="VBoxContainer" unique_id=1561487813]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="Title2" type="Label" parent="VBoxContainer"]
+[node name="Title2" type="Label" parent="VBoxContainer" unique_id=278954801]
 layout_mode = 2
-text = "ver 1.04 ランキング数変更"
+text = "ver 1.041 UI変更"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1

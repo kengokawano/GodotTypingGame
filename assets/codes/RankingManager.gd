@@ -44,10 +44,14 @@ func _ready():
 	# 読み込み開始（awaitしない - バックグラウンドで実行）
 	load_rankings()
 
-func wait_for_load_complete():
-	# 外部から読み込み完了を待つための関数
-	while _is_loading:
+func wait_for_load_complete(max_wait: float = 5.0):
+	var waited = 0.0
+	while _is_loading and waited < max_wait:
 		await get_tree().create_timer(0.1).timeout
+		waited += 0.1
+	if _is_loading:
+		print("Ranking load timed out, proceeding without data")
+		_is_loading = false
 
 func load_rankings():
 	_is_loading = true
