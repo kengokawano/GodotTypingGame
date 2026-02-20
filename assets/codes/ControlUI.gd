@@ -45,6 +45,15 @@ func _ready():
 
 	if btn_start:
 		btn_start.pressed.connect(on_start_button_pressed)
+		# アニメーション用の設定（レイアウト確定後にピボットを設定）
+		await get_tree().process_frame
+		btn_start.pivot_offset = btn_start.size / 2
+		btn_start.mouse_entered.connect(_on_btn_start_mouse_entered)
+		btn_start.mouse_exited.connect(_on_btn_start_mouse_exited)
+		_setup_button_style()
+		_start_pulse_animation()
+		_start_label_pulse()
+
 	if btn_debug_toggle:
 		btn_debug_toggle.pressed.connect(on_debug_toggle_pressed)
 	if btn_debug_start:
@@ -120,6 +129,14 @@ func _ready():
 
 func on_start_button_pressed():
 	print("Start button pressed!")
+	
+	# クリック時の演出
+	if btn_start:
+		var tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tween.tween_property(btn_start, "scale", Vector2(0.9, 0.9), 0.1)
+		tween.tween_property(btn_start, "scale", Vector2(1.1, 1.1), 0.1)
+		await tween.finished
+	
 	# 選択されたモードとSE設定をGameDataに保存
 	if GameData and btn_normal and btn_time_attack and btn_se_enabled:
 		if btn_normal.button_pressed:
@@ -200,7 +217,7 @@ func check_ranking_eligibility():
 		show_ranking_registration()
 
 func show_ranking_registration():
-	if not GameData:
+	if not GameData or not ranking_panel:
 		return
 	
 	var score = GameData.get_score()
@@ -209,7 +226,17 @@ func show_ranking_registration():
 	
 	ranking_score_label.text = "%s - スコア: %s" % [mode_text, score_text]
 	ranking_name_input.text = ""
+	
+	# パネル出現のアニメーション
 	ranking_panel.visible = true
+	ranking_panel.modulate.a = 0
+	ranking_panel.scale = Vector2(0.8, 0.8)
+	ranking_panel.pivot_offset = ranking_panel.size / 2
+	
+	var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ranking_panel, "modulate:a", 1.0, 0.4)
+	tween.tween_property(ranking_panel, "scale", Vector2(1.0, 1.0), 0.4)
+	
 	ranking_name_input.grab_focus()
 
 func on_ranking_register_pressed():
@@ -221,11 +248,21 @@ func on_ranking_register_pressed():
 		var score = GameData.get_score()
 		var is_time = GameData.is_time_score()
 
+		# ボタンを無効化して連打防止
+		if btn_ranking_register: btn_ranking_register.disabled = true
+
 		# API通信を待つ
 		var success = await GameData.add_to_ranking(player_name)
 
 		if success:
+			# 閉じるアニメーション
+			var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			tween.tween_property(ranking_panel, "modulate:a", 0.0, 0.3)
+			tween.tween_property(ranking_panel, "scale", Vector2(0.8, 0.8), 0.3)
+			await tween.finished
 			ranking_panel.visible = false
+			ranking_panel.scale = Vector2.ONE
+			ranking_panel.modulate.a = 1.0
 
 			# API通信完了後に再描画
 			update_ranking_display()
@@ -238,9 +275,20 @@ func on_ranking_register_pressed():
 
 			# ランキング登録後にスコアクリア
 			GameData.clear_score()
+		
+		if btn_ranking_register: btn_ranking_register.disabled = false
 
 func on_ranking_close_pressed():
+	# 閉じるアニメーション
+	var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_property(ranking_panel, "modulate:a", 0.0, 0.3)
+	tween.tween_property(ranking_panel, "scale", Vector2(0.8, 0.8), 0.3)
+	await tween.finished
+	
 	ranking_panel.visible = false
+	ranking_panel.scale = Vector2.ONE
+	ranking_panel.modulate.a = 1.0
+	
 	# ランキング登録を閉じた場合もスコアクリア
 	if GameData:
 		GameData.clear_score()
@@ -250,6 +298,102 @@ func on_start_id_changed(new_text: String):
 
 func on_end_id_changed(new_text: String):
 	print("End ID changed to: ", new_text)
+
+# --- UI Animations ---
+
+func _on_btn_start_mouse_entered():
+	if btn_start.disabled: return
+	var tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(btn_start, "scale", Vector2(1.1, 1.1), 0.2)
+
+func _on_btn_start_mouse_exited():
+	if btn_start.disabled: return
+	var tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(btn_start, "scale", Vector2(1.0, 1.0), 0.2)
+
+func _start_pulse_animation():
+	if not btn_start: return
+	
+	# 無限ループするパルスアニメーション
+	var tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(btn_start, "modulate:a", 0.7, 0.8)
+	tween.tween_property(btn_start, "modulate:a", 1.0, 0.8)
+
+func _start_label_pulse():
+	if not la_score_label: return
+	
+	var tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(la_score_label, "modulate:a", 0.5, 1.2)
+	tween.tween_property(la_score_label, "modulate:a", 1.0, 1.2)
+
+func _setup_button_style():
+	if not btn_start: return
+	
+	# レッズカラーの定義
+	var REDS_RED = Color(0.85, 0.0, 0.0)
+	var REDS_DARK = Color(0.1, 0.1, 0.1)
+	var REDS_WHITE = Color(1.0, 1.0, 1.0)
+	
+	# スタートボタン・登録ボタン用 (赤ベース)
+	var style_red = StyleBoxFlat.new()
+	style_red.bg_color = REDS_RED
+	style_red.corner_radius_top_left = 12
+	style_red.corner_radius_top_right = 12
+	style_red.corner_radius_bottom_left = 12
+	style_red.corner_radius_bottom_right = 12
+	style_red.content_margin_left = 30
+	style_red.content_margin_right = 30
+	style_red.shadow_size = 6
+	style_red.shadow_offset = Vector2(0, 4)
+	
+	var style_red_hover = style_red.duplicate()
+	style_red_hover.bg_color = Color(1.0, 0.1, 0.1)
+	style_red_hover.shadow_size = 10
+	
+	# スタートボタン適用
+	btn_start.add_theme_stylebox_override("normal", style_red)
+	btn_start.add_theme_stylebox_override("hover", style_red_hover)
+	btn_start.add_theme_stylebox_override("pressed", style_red)
+	btn_start.add_theme_stylebox_override("focus", style_red_hover)
+	btn_start.add_theme_color_override("font_color", REDS_WHITE)
+
+	# ランキングパネル
+	if ranking_panel:
+		var style_panel = StyleBoxFlat.new()
+		style_panel.bg_color = Color(0.08, 0.08, 0.08, 0.95) # 深い黒
+		style_panel.border_width_left = 3
+		style_panel.border_width_top = 3
+		style_panel.border_width_right = 3
+		style_panel.border_width_bottom = 3
+		style_panel.border_color = REDS_RED
+		style_panel.corner_radius_top_left = 15
+		style_panel.corner_radius_top_right = 15
+		style_panel.corner_radius_bottom_left = 15
+		style_panel.corner_radius_bottom_right = 15
+		style_panel.shadow_size = 25
+		ranking_panel.add_theme_stylebox_override("panel", style_panel)
+
+	# ランキング登録ボタン適用
+	if btn_ranking_register:
+		btn_ranking_register.add_theme_stylebox_override("normal", style_red)
+		btn_ranking_register.add_theme_stylebox_override("hover", style_red_hover)
+		btn_ranking_register.add_theme_color_override("font_color", REDS_WHITE)
+	
+	# ランキング閉じるボタン (黒/赤枠)
+	if btn_ranking_close:
+		var style_close = style_red.duplicate()
+		style_close.bg_color = REDS_DARK
+		style_close.border_width_left = 2
+		style_close.border_width_top = 2
+		style_close.border_width_right = 2
+		style_close.border_width_bottom = 2
+		style_close.border_color = REDS_RED
+		btn_ranking_close.add_theme_stylebox_override("normal", style_close)
+		
+		var style_close_hover = style_close.duplicate()
+		style_close_hover.bg_color = Color(0.2, 0.2, 0.2)
+		btn_ranking_close.add_theme_stylebox_override("hover", style_close_hover)
+		btn_ranking_close.add_theme_color_override("font_color", REDS_WHITE)
 
 func _input(event: InputEvent):
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -264,28 +408,47 @@ func _input(event: InputEvent):
 
 func update_ranking_display():
 	if not GameData or not GameData.ranking_manager:
-		normal_ranking_list.text = "データなし"
-		time_attack_ranking_list.text = "データなし"
+		if normal_ranking_list: normal_ranking_list.text = "データなし"
+		if time_attack_ranking_list: time_attack_ranking_list.text = "データなし"
 		return
 	
-	# Normalランキング表示
-	var normal_rankings = GameData.ranking_manager.get_normal_rankings()
-	var normal_text = ""
-	if normal_rankings.is_empty():
-		normal_text = "記録なし"
-	else:
-		for i in range(normal_rankings.size()):
-			var entry = normal_rankings[i]
-			normal_text += "%d. %s - %s\n" % [i + 1, entry.name, entry.score]
-	normal_ranking_list.text = normal_text
+	var update_list = func(rl: RichTextLabel, rankings: Array, is_time: bool):
+		if not rl: return
+		rl.bbcode_enabled = true
+		rl.clear() # 既存のテキストをクリア
+		
+		if rankings.is_empty():
+			rl.append_text("[center]記録なし[/center]")
+			return
+		
+		for i in range(rankings.size()):
+			var entry = rankings[i]
+			var rank_num = i + 1
+			var color_code = "#FFFFFF"
+			var prefix = ""
+			
+			if rank_num == 1: 
+				color_code = "#FFD700" # Gold
+				prefix = "👑 "
+			elif rank_num == 2: 
+				color_code = "#C0C0C0" # Silver
+				prefix = "🥈 "
+			elif rank_num == 3: 
+				color_code = "#CD7F32" # Bronze
+				prefix = "🥉 "
+			else:
+				prefix = "%2d. " % rank_num
+			
+			var score_suffix = "秒" if is_time else ""
+			var name_str = str(entry.name).left(10)
+			
+			# push/popメソッドを使用してBBCodeを構築（タグの閉じ忘れやミスを防ぐ）
+			rl.push_color(Color(color_code))
+			if rank_num == 1: rl.push_bold()
+			rl.add_text("%s%-10s : %s%s" % [prefix, name_str, entry.score, score_suffix])
+			if rank_num == 1: rl.pop()
+			rl.pop()
+			rl.newline()
 	
-	# TimeAttackランキング表示
-	var time_attack_rankings = GameData.ranking_manager.get_time_attack_rankings()
-	var time_attack_text = ""
-	if time_attack_rankings.is_empty():
-		time_attack_text = "記録なし"
-	else:
-		for i in range(time_attack_rankings.size()):
-			var entry = time_attack_rankings[i]
-			time_attack_text += "%d. %s - %s秒\n" % [i + 1, entry.name, entry.score]
-	time_attack_ranking_list.text = time_attack_text
+	update_list.call(normal_ranking_list, GameData.ranking_manager.get_normal_rankings(), false)
+	update_list.call(time_attack_ranking_list, GameData.ranking_manager.get_time_attack_rankings(), true)
