@@ -71,6 +71,10 @@ func _ready():
 	
 	if btn_se_enabled:
 		btn_se_enabled.toggled.connect(on_se_toggled)
+	if ranking_name_input:
+		ranking_name_input.caret_blink = true
+		ranking_name_input.selecting_enabled = true
+		ranking_name_input.mouse_filter = Control.MOUSE_FILTER_STOP
 	if btn_ranking_register:
 		btn_ranking_register.pressed.connect(on_ranking_register_pressed)
 	if btn_ranking_close:
@@ -98,11 +102,15 @@ func _ready():
 	if start_id_input:
 		start_id_input.text = str(debug_default_start_id)
 		start_id_input.text_changed.connect(on_start_id_changed)
-		print("StartIdInput editable: ", start_id_input.editable)
+		start_id_input.caret_blink = true
+		start_id_input.selecting_enabled = true
+		start_id_input.mouse_filter = Control.MOUSE_FILTER_STOP
 	if end_id_input:
 		end_id_input.text = str(debug_default_end_id)
 		end_id_input.text_changed.connect(on_end_id_changed)
-		print("EndIdInput editable: ", end_id_input.editable)
+		end_id_input.caret_blink = true
+		end_id_input.selecting_enabled = true
+		end_id_input.mouse_filter = Control.MOUSE_FILTER_STOP
 	
 	# SE設定の初期化
 	if GameData and btn_se_enabled:
@@ -153,10 +161,12 @@ func on_debug_toggle_pressed():
 	print("Debug toggle pressed!")
 	if debug_panel:
 		debug_panel.visible = not debug_panel.visible
-		# デバッグパネルを開いた時にStartIdInputにフォーカスを設定
-		if debug_panel.visible and start_id_input:
-			start_id_input.grab_focus()
-			start_id_input.select_all()
+		if debug_panel.visible:
+			# シーンツリーの最後に移動して入力を最優先にする
+			move_child(debug_panel, -1)
+			if start_id_input:
+				start_id_input.grab_focus()
+				start_id_input.select_all()
 
 func on_debug_start_pressed():
 	print("Debug start pressed!")
@@ -395,6 +405,10 @@ func _setup_button_style():
 		btn_ranking_close.add_theme_stylebox_override("hover", style_close_hover)
 		btn_ranking_close.add_theme_color_override("font_color", REDS_WHITE)
 
+func _is_any_input_focused() -> bool:
+	var focused = get_viewport().gui_get_focus_owner()
+	return focused is LineEdit or focused is TextEdit
+
 func _input(event: InputEvent):
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		# Ctrl+Shift+Dでデバッグボタン表示
@@ -402,8 +416,8 @@ func _input(event: InputEvent):
 			if btn_debug_toggle:
 				btn_debug_toggle.visible = not btn_debug_toggle.visible
 		elif event.keycode == KEY_SPACE:
-			# ランキング入力中でなければスペースキーでゲーム開始
-			if not ranking_panel.visible:
+			# 入力欄にフォーカスがある場合は無視
+			if not _is_any_input_focused() and not ranking_panel.visible:
 				on_start_button_pressed()
 
 func update_ranking_display():

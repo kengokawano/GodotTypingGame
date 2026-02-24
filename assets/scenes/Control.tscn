@@ -47,6 +47,7 @@ color = Color(0.501961, 0.501961, 0.501961, 1)
 
 [node name="DebugPanel" type="Panel" parent="." unique_id=1186254072]
 visible = false
+z_index = 100
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
