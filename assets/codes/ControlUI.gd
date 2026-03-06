@@ -254,6 +254,16 @@ func on_ranking_register_pressed():
 	if player_name.is_empty():
 		return
 
+	# 暴力的な名前・誹謗中傷などを弾く（クライアントサイド）
+	var forbidden_words = ["死ね", "殺す", "アホ", "あほ", "馬鹿", "ばか", "バカ", "かす", "カス", "ゴミ", "ごみ", "きもい", "キモイ", "うざい", "ウザイ", "ガイジ", "池沼", "氏ね", "しね", "シネ", "コロス", "ころす", "うんこ", "ウンコ", "ちんこ", "チンコ", "まんこ", "マンコ", "セックス", "sex", "fuck", "shit", "bitch"]
+	for word in forbidden_words:
+		if player_name.to_lower().find(word) != -1:
+			la_score_label.text = "不適切な言葉が含まれているため登録できません"
+			la_score_label.modulate = Color(1, 0.3, 0.3)  # 赤色で警告
+			var tween = create_tween()
+			tween.tween_property(la_score_label, "modulate", Color(1, 1, 1), 1.0).set_delay(2.0)
+			return
+
 	if GameData:
 		var score = GameData.get_score()
 		var is_time = GameData.is_time_score()

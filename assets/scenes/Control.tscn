@@ -333,8 +333,15 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 horizontal_alignment = 1
 
+[node name="NoticeLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_vxiwm")
+theme_override_font_sizes/font_size = 18
+text = "※ランキング登録時、不適切な言葉を含む名前は登録されません"
+horizontal_alignment = 1
+
 [node name="Title2" type="Label" parent="VBoxContainer" unique_id=278954801]
 layout_mode = 2
-text = "ver 1.041 UI変更"
+text = "ver 1.042 NGワード判定追加"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1

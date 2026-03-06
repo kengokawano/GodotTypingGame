@@ -47,6 +47,16 @@ if (empty($name) || ($mode !== 'normal' && $mode !== 'time_attack')) {
     exit();
 }
 
+// 暴力的な名前・誹謗中傷などを弾く（サーバーサイド）
+$forbiddenWords = ['死ね', '殺す', 'アホ', 'あほ', '馬鹿', 'ばか', 'バカ', 'かす', 'カス', 'ゴミ', 'ごみ', 'きもい', 'キモイ', 'うざい', 'ウザイ', 'ガイジ', '池沼', '氏ね', 'しね', 'シネ', 'コロス', 'ころす', 'うんこ', 'ウンコ', 'ちんこ', 'チンコ', 'まんこ', 'マンコ', 'セックス', 'sex', 'fuck', 'shit', 'bitch'];
+foreach ($forbiddenWords as $word) {
+    if (mb_stripos($name, $word) !== false) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Inappropriate name']);
+        exit();
+    }
+}
+
 // Open and lock the file
 $fp = fopen($rankingFile, 'c+');
 if (!$fp || !flock($fp, LOCK_EX)) {
