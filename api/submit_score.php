@@ -65,11 +65,22 @@ if (!$fp || !flock($fp, LOCK_EX)) {
     exit();
 }
 
-// Read current rankings
+// Read current rankings (ロック取得後にファイル先頭から読み直す)
+rewind($fp);
 $currentRankingsJson = stream_get_contents($fp);
 $rankings = json_decode($currentRankingsJson, true);
 if (!is_array($rankings) || !isset($rankings['normal']) || !isset($rankings['time_attack'])) {
-    // If file is empty or corrupt, initialize it
+    // ファイルにデータがあるのにパースできない場合はデータ破損
+    // 既存データを保護するため書き込みを中止する
+    $stat = fstat($fp);
+    if ($stat !== false && $stat['size'] > 0) {
+        flock($fp, LOCK_UN);
+        fclose($fp);
+        http_response_code(500);
+        echo json_encode(['error' => 'Ranking data corrupt, aborting to protect existing data']);
+        exit();
+    }
+    // ファイルが本当に空の場合のみ初期化
     $rankings = ['normal' => [], 'time_attack' => []];
 }
 
