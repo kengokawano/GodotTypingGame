@@ -48,9 +48,14 @@ if (empty($name) || ($mode !== 'normal' && $mode !== 'time_attack')) {
 }
 
 // 暴力的な名前・誹謗中傷などを弾く（サーバーサイド）
-$forbiddenWords = ['死ね', '殺す', 'アホ', 'あほ', '馬鹿', 'ばか', 'バカ', 'かす', 'カス', 'ゴミ', 'ごみ', 'きもい', 'キモイ', 'うざい', 'ウザイ', 'ガイジ', '池沼', '氏ね', 'しね', 'シネ', 'コロス', 'ころす', 'うんこ', 'ウンコ', 'ちんこ', 'チンコ', 'まんこ', 'マンコ', 'セックス', 'sex', 'fuck', 'shit', 'bitch'];
+// スペース・全角スペース・タブなどを除去してチェック（「ち ん こ」のような回避を防止）
+$nameForCheck = preg_replace('/[\s\x{3000}]+/u', '', $name);
+
+$forbiddenWords = ['死ね', '殺す', 'アホ', 'あほ', '馬鹿', 'ばか', 'バカ', 'かす', 'カス', 'ゴミ', 'ごみ', 'きもい', 'キモイ', 'うざい', 'ウザイ', 'ガイジ', '池沼', '氏ね', 'しね', 'シネ', 'コロス', 'ころす', 'うんこ', 'ウンコ', 'ちんこ', 'チンコ', 'まんこ', 'マンコ', 'セックス', 'sex', 'fuck', 'shit', 'bitch',
+    // 数字スラング
+    '4545', '114514', '893', '4んで', '56す', '0721'];
 foreach ($forbiddenWords as $word) {
-    if (mb_stripos($name, $word) !== false) {
+    if (mb_stripos($nameForCheck, $word) !== false) {
         http_response_code(400);
         echo json_encode(['error' => 'Inappropriate name']);
         exit();
