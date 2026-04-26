@@ -142,6 +142,13 @@ func _on_background_questions_loaded(questions: Array, status_msg: String = ""):
 		
 	_all_questions = questions
 	print("Background questions update: ", status_msg)
+	print("[DIAG] questions.size=%d raw_data_cache.size=%d _is_game_started=%s deck.size=%d" % [questions.size(), QuestionLoader._raw_data_cache.size(), str(_is_game_started), _question_deck.size()])
+
+	# 外部データで raw_data_cache が更新されたので、出題デッキを作り直して
+	# 新しく追加された問題（ニュース等）も次の出題から拾えるようにする
+	if _is_game_started:
+		_reset_question_deck()
+		print("[DIAG] deck rebuilt. new size=%d" % _question_deck.size())
 
 	if _pending_debug_start:
 		_pending_debug_start = false
@@ -276,12 +283,15 @@ func _reset_question_deck():
 	_deck_position = 0
 
 func _get_next_question_from_deck():
-	# デッキが空、または全部引いた場合はリセット
+	# デッキが空、または全部引いた場合は raw_data_cache の現在サイズで作り直す
+	# （単に同じ配列をシャッフルし直すだけだと、後から件数が増えても拾えないため）
 	if _question_deck.is_empty():
 		_reset_question_deck()
-	if _deck_position >= _question_deck.size():
-		_question_deck.shuffle()
-		_deck_position = 0
+	elif _deck_position >= _question_deck.size():
+		_reset_question_deck()
+	# raw_data_cache のサイズが変わっていたらデッキも作り直す
+	elif not QuestionLoader._raw_data_cache.is_empty() and _question_deck.size() != QuestionLoader._raw_data_cache.size():
+		_reset_question_deck()
 
 	var index = _question_deck[_deck_position]
 	_deck_position += 1

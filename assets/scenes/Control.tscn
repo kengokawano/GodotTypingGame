@@ -342,6 +342,6 @@ horizontal_alignment = 1
 
 [node name="Title2" type="Label" parent="VBoxContainer" unique_id=278954801]
 layout_mode = 2
-text = "ver 1.042 NGワード判定追加"
+text = "ver 1.043 ニュース問題対応・JSON取得方式変更"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1

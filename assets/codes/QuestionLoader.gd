@@ -14,49 +14,57 @@ static var _cache_loaded: bool = false
 @export var cache_size_limit: int = 500  # キャッシュする問題数の上限
 @export var initial_load_limit: int = 50  # 初回読み込み問題数
 
-static func load_questions_external_async(context: Node, on_complete: Callable):
-	# Webの場合: HTTPRequestを使って外部JSONを取得
-	if OS.has_feature("web"):
-		var http = HTTPRequest.new()
-		context.add_child(http)
-		http.request_completed.connect(func(result, response_code, headers, body):
-			if result == HTTPRequest.RESULT_SUCCESS and response_code == 200:
-				var json_string = body.get_string_from_utf8()
-				print("Loaded external questions from web")
-				var questions = _parse_and_load_json(json_string)
-				http.queue_free()
-				on_complete.call(questions, "External (Web) Success")
-				return
-			
-			var msg = "External load failed (Web). Code: %s" % response_code
-			print(msg)
-			http.queue_free()
-			var questions = load_questions_from_file("res://assets/data/questions.json")
-			on_complete.call(questions, "Fallback (Web) - " + msg)
-		)
-		
-		# 同階層のquestions.jsonを取得試行
+static var _js_fetch_callback_ref = null  # JS callback の GC 防止用
 
-		# GodotのHTTPRequestは相対パスを受け付けない場合があるため、絶対パスを構築する
+static func load_questions_external_async(context: Node, on_complete: Callable):
+	# Webの場合: ブラウザの fetch API を直接使う
+	# （Godot HTTPRequest 経由だとサーバの gzip 応答を解凍できず RESULT_BODY_DECOMPRESS_FAILED になるため）
+	if OS.has_feature("web"):
+		# 同階層の questions.json の絶対URLを構築
 		var url = "questions.json"
-		
-		# OS.has_feature("javascript") が false を返しているが、Webエクスポートなら JavaScriptBridge は使えるはず
-		# そのため、web フラグのみで判定するように変更
-		if OS.has_feature("web"):
-			# JavaScriptを使って現在のURLパスを取得
-			var href = JavaScriptBridge.eval("window.location.href")
-			if href and href is String:
-				var base_url = href.substr(0, href.rfind("/") + 1)
-				url = base_url + "questions.json"
-		
-		# キャッシュバスティング
+		var href = JavaScriptBridge.eval("window.location.href")
+		if href and href is String:
+			var base_url = href.substr(0, href.rfind("/") + 1)
+			url = base_url + "questions.json"
 		url += "?t=" + str(Time.get_unix_time_from_system())
-		
-		var error = http.request(url)
-		if error != OK:
-			print("HTTPRequest error: ", error)
-			var questions = load_questions_from_file("res://assets/data/questions.json")
-			on_complete.call(questions, "Fallback (WebReqErr) - %s" % error)
+
+		print("[DIAG] JS Fetching URL: ", url)
+
+		# JSコールバックを作成（Godot側で受け取る）
+		_js_fetch_callback_ref = JavaScriptBridge.create_callback(func(args):
+			var status = int(args[0])
+			var text = str(args[1])
+			print("[DIAG] JS fetch callback: status=%d text_length=%d" % [status, text.length()])
+			if status == 200 and text.length() > 0:
+				print("Loaded external questions from web (JS fetch, length=%d)" % text.length())
+				var questions = _parse_and_load_json(text)
+				print("[DIAG] After parse: raw_data_cache.size=%d cached_questions.size=%d" % [_raw_data_cache.size(), _cached_questions.size()])
+				on_complete.call(questions, "External (Web JS) Success")
+			else:
+				var msg = "JS fetch failed status=%d" % status
+				print(msg)
+				var questions = load_questions_from_file("res://assets/data/questions.json")
+				on_complete.call(questions, "Fallback (Web JS) - " + msg)
+		)
+
+		# fetch 関数を一度だけ window に登録
+		JavaScriptBridge.eval("""
+			if (!window._gd_fetch_questions) {
+				window._gd_fetch_questions = function(url, cb) {
+					fetch(url, {cache: 'no-store'})
+						.then(function(r) {
+							return r.text().then(function(text) { cb(r.status, text); });
+						})
+						.catch(function(err) {
+							console.error('JS fetch error:', err);
+							cb(0, '');
+						});
+				};
+			}
+		""", true)
+
+		var window = JavaScriptBridge.get_interface("window")
+		window._gd_fetch_questions(url, _js_fetch_callback_ref)
 			
 	# デスクトップの場合: 実行ファイル横のJSONを確認
 	else:
@@ -66,8 +74,8 @@ static func load_questions_external_async(context: Node, on_complete: Callable):
 		if OS.has_feature("editor") and FileAccess.file_exists("res://questions.json"):
 			external_path = "res://questions.json"
 
-		if OS.has_feature("editor") and FileAccess.file_exists("res://web/apps/typing/questions.json"):
-			external_path = "res://web/apps/typing/questions.json"
+		if OS.has_feature("editor") and FileAccess.file_exists("res://web/Typing/questions.json"):
+			external_path = "res://web/Typing/questions.json"
 		
 		# エディタ実行時はプロジェクトルートを見る（デバッグ用）
 		if OS.has_feature("editor"):
