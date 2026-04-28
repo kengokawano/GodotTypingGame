@@ -50,6 +50,7 @@ var _current_question_text: String = ""
 var _current_question_era: String = ""
 var _current_question_no: String = ""
 var _current_question_pos: String = ""
+var _current_question_tags: Array = []
 var _current_kana: Array[String] = []
 var _current_roman: Array[Array] = []
 var _current_kana_index: int = 0
@@ -67,6 +68,7 @@ var _debug_start_id: int = 0
 var _debug_end_id: int = 0
 var _debug_current_index: int = 0
 var _pending_debug_start: bool = false
+var _pending_normal_start: bool = false
 
 # シングルトンへの参照
 var GameData = null
@@ -104,17 +106,22 @@ func initialize_game_deferred():
 
 	RomanTypingParser.read_json_file()
 	
-	# 1. まず内蔵データを即座に読み込んでゲームを開始する（待ち時間ゼロ）
+	# 内蔵データを保険として読み込み（フォールバック用）
 	_all_questions = QuestionLoader.load_questions_from_file("res://assets/data/questions.json")
 	if _all_questions.is_empty():
 		_all_questions.append(create_fallback_question())
-	
+
 	# アニメーション設定をキャッシュ
 	_cached_animation_count = available_animations.size()
 
-	# ゲームモードの初期化（内蔵データで先行スタート）
+	# ゲームモードの初期化
 	if GameData and GameData.is_debug_mode:
 		_pending_debug_start = true
+	elif OS.has_feature("web"):
+		# Web時は外部ロード完了を待ってから開始（バンドル版を表示しないため）
+		_pending_normal_start = true
+		_load_status_msg = "問題データをロード中..."
+		update_display()
 	elif GameData:
 		var selected_mode = GameData.get_game_mode()
 		if selected_mode == GameData.GameMode.NORMAL:
@@ -126,20 +133,23 @@ func initialize_game_deferred():
 	else:
 		start_normal.call_deferred()
 
-	# 2. バックグラウンドで外部データを取得し、完了したら差し替える
+	# バックグラウンドで外部データを取得し、完了したら差し替える
 	QuestionLoader.load_questions_external_async(self, _on_background_questions_loaded)
 
 func _on_background_questions_loaded(questions: Array, status_msg: String = ""):
 	# 外部ロード失敗、かつフォールバックで内蔵データを返してきた場合（内容は今のと同じ）は無視してもいいが
 	# キャッシュがクリアされて再生成されているので、一応更新しておくのが無難
 	
-	# 空っぽなら更新しない
+	# 空っぽなら更新しない（保留中の起動は内蔵データで実行）
 	if questions.is_empty():
 		if _pending_debug_start:
 			_pending_debug_start = false
 			start_debug_from_game_data.call_deferred()
+		if _pending_normal_start:
+			_pending_normal_start = false
+			_start_pending_normal_mode()
 		return
-		
+
 	_all_questions = questions
 	print("Background questions update: ", status_msg)
 	print("[DIAG] questions.size=%d raw_data_cache.size=%d _is_game_started=%s deck.size=%d" % [questions.size(), QuestionLoader._raw_data_cache.size(), str(_is_game_started), _question_deck.size()])
@@ -153,11 +163,19 @@ func _on_background_questions_loaded(questions: Array, status_msg: String = ""):
 	if _pending_debug_start:
 		_pending_debug_start = false
 		start_debug_from_game_data.call_deferred()
-	
-	# もしこれが「成功」なら、こっそり通知出してもいいかもしれないが、
-	# プレイの邪魔にならないようログ出力にとどめる
-	if "Success" in status_msg:
-		pass 
+	if _pending_normal_start:
+		_pending_normal_start = false
+		_start_pending_normal_mode()
+
+func _start_pending_normal_mode():
+	if GameData:
+		var selected_mode = GameData.get_game_mode()
+		if selected_mode == GameData.GameMode.TIME_ATTACK:
+			start_time_attack.call_deferred()
+		else:
+			start_normal.call_deferred()
+	else:
+		start_normal.call_deferred()
 
 
 func _input(event: InputEvent):
@@ -342,6 +360,7 @@ func load_next_question():
 	_current_question_era = str(question.era)
 	_current_question_no = question.No
 	_current_question_pos = question.Pos
+	_current_question_tags = question.tags if question.tags is Array else []
 	var result = RomanTypingParser.construct_type_sentence(question.kana)
 	_current_kana = result[0]
 	_current_roman = result[1]
@@ -404,15 +423,20 @@ func update_display():
 
 	# 問題文を適切な長さで改行
 	question_label.text = format_text_with_line_breaks(_current_question_text, 30)
-	# 年代（No）、ポジション（Pos）、era情報を表示
+	# 情報表示: ニュース問題は「ニュース | era」、それ以外は「No | Pos | era」
 	var info_parts = []
-	if _current_question_no != "":
-		info_parts.append("[color=#cccccc]%s[/color]" % _current_question_no)  # グレー
-	if _current_question_pos != "":
-		info_parts.append("[color=#cccccc]%s[/color]" % _current_question_pos)  # グレー
-	if _current_question_era != "":
-		info_parts.append("[color=#cccccc]%s[/color]" % _current_question_era)  # グレー
-	
+	if "ニュース" in _current_question_tags:
+		info_parts.append("[color=#cccccc]ニュース[/color]")
+		if _current_question_era != "":
+			info_parts.append("[color=#cccccc]%s[/color]" % _current_question_era)
+	else:
+		if _current_question_no != "":
+			info_parts.append("[color=#cccccc]%s[/color]" % _current_question_no)
+		if _current_question_pos != "":
+			info_parts.append("[color=#cccccc]%s[/color]" % _current_question_pos)
+		if _current_question_era != "":
+			info_parts.append("[color=#cccccc]%s[/color]" % _current_question_era)
+
 	info_text.text = " | ".join(info_parts)
 
 	var kana_progress_text = ""
