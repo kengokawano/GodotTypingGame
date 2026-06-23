@@ -32,12 +32,14 @@ enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 
 # Normalモード設定（インスペクターで変更可能）
 @export var normal_time_limit: int = 10  # Normal制限時間（秒）
+@export var combo_bonus_interval: int = 10  # 何コンボごとにボーナスを付与するか
+@export var combo_bonus_seconds: float = 0.7  # コンボボーナスで加算する秒数（Normalモード）
 
 # アニメーション設定（インスペクターで変更可能）
 @export var available_animations: Array[String] = ["act1", "dash"]
 
 var _current_mode = GameMode.NONE
-var _remaining_time_in_seconds: int = 0
+var _remaining_time_in_seconds: float = 0.0
 var _questions_completed: int = 0
 var _is_game_started: bool = false
 var _elapsed_time: float = 0.0
@@ -84,6 +86,14 @@ func _process(delta):
 	if _is_game_started and (_current_mode == GameMode.TIME_ATTACK or _current_mode == GameMode.DEBUG):
 		_elapsed_time += delta
 		score_label.text = "%.1f秒" % _elapsed_time
+	elif _is_game_started and _current_mode == GameMode.NORMAL:
+		_remaining_time_in_seconds -= delta
+		if _remaining_time_in_seconds <= 0.0:
+			_remaining_time_in_seconds = 0.0
+			time_label.text = "%.1f" % 0.0
+			finish_game()
+		else:
+			time_label.text = "%.1f" % _remaining_time_in_seconds
 
 func _ready():
 	# Autoloadされたシングルトンを取得
@@ -499,7 +509,7 @@ func update_display():
 	miss_label.text = "%s" % _miss_count
 
 	if _current_mode == GameMode.NORMAL:
-		time_label.text = "%s" % _remaining_time_in_seconds
+		time_label.text = "%.1f" % _remaining_time_in_seconds
 		score_label.text = "%s" % _total_key_presses
 		mode_label.text = "NORMAL"
 	elif _current_mode == GameMode.TIME_ATTACK:
@@ -565,7 +575,12 @@ func handle_key_press(input_char: String):
 		_input_roman_index = 0
 		_candidate_romans = []
 		_combo_count += 1
-		
+
+		# コンボボーナス：一定コンボ到達ごとにNormalモードの残り時間を加算
+		if _current_mode == GameMode.NORMAL and combo_bonus_interval > 0 and _combo_count % combo_bonus_interval == 0:
+			_remaining_time_in_seconds += combo_bonus_seconds
+			show_time_bonus_popup(combo_bonus_seconds)
+
 		# コンボパーティクルの発動チェック（3回以上から毎回）
 		if _combo_count >= 3:
 			trigger_combo_particles()
@@ -604,6 +619,24 @@ func trigger_combo_particles():
 		combo_text_particles.color = selected_color
 		combo_text_particles.emitting = true
 		combo_text_particles.restart()
+
+func show_time_bonus_popup(amount: float):
+	# 加算秒数を「+0.7秒」として時間ラベルの上に浮かび上がらせて消す
+	var popup := Label.new()
+	popup.text = "+%.1f秒" % amount
+	popup.add_theme_font_override("font", time_label.get_theme_font("font"))
+	popup.add_theme_font_size_override("font_size", 32)
+	popup.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))  # 緑
+	popup.z_index = 100
+	add_child(popup)
+
+	var start_pos: Vector2 = time_label.global_position + Vector2(0, -30)
+	popup.global_position = start_pos
+
+	var tween := create_tween()
+	tween.tween_property(popup, "global_position:y", start_pos.y - 60, 0.8)
+	tween.parallel().tween_property(popup, "modulate:a", 0.0, 0.8)
+	tween.tween_callback(popup.queue_free)
 
 func play_random_animation():
 	if not player_animation or available_animations.is_empty():
@@ -715,8 +748,5 @@ func format_kana_progress_with_line_breaks(rich_text: String, max_display_chars_
 	return result
 
 func on_game_timer_timeout():
-	if _current_mode == GameMode.NORMAL:
-		_remaining_time_in_seconds -= 1
-		if _remaining_time_in_seconds <= 0:
-			finish_game()
+	# Normalモードの残り時間は_processでfloat管理するため、ここでは表示更新のみ
 	update_display()

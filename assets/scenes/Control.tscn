@@ -342,6 +342,6 @@ horizontal_alignment = 1
 
 [node name="Title2" type="Label" parent="VBoxContainer" unique_id=278954801]
 layout_mode = 2
-text = "ver 1.043 ニュース問題対応・JSON取得方式変更"
+text = "ver 1.044 コンボボーナス（10コンボごとに+0.7秒）追加"
 label_settings = SubResource("LabelSettings_w2my6")
 horizontal_alignment = 1
