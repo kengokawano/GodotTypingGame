@@ -1,16 +1,106 @@
 {
     "normal": [
         {
-            "name": "【次はフロンターレ戦】",
-            "score": 1,
-            "timestamp": 1777180605
+            "name": "\u30e1\u30f3\u30c8\u30b9\u96d1\u9b5aw\u6d6a\u4eba",
+            "score": 246,
+            "timestamp": 1782278800
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9\u3056\u3063\u3053w",
+            "score": 239,
+            "timestamp": 1782278688
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 214,
+            "timestamp": 1781236333
+        },
+        {
+            "name": "\u5fb3\u5cf6\u30f4\u30a9\u30eb\u30c6\u30a3\u30b9",
+            "score": 212,
+            "timestamp": 1780355156
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 212,
+            "timestamp": 1781676126
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 206,
+            "timestamp": 1780632187
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 203,
+            "timestamp": 1781676184
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 202,
+            "timestamp": 1781236682
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9\u306e\u5f1f\u5b50",
+            "score": 201,
+            "timestamp": 1781595659
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 200,
+            "timestamp": 1781236150
         }
     ],
     "time_attack": [
         {
-            "name": "【今度こそ勝つゾ】",
-            "score": 999000,
-            "timestamp": 1777180605
+            "name": "\u5fb3\u5cf6\u30f4\u30a9\u30eb\u30c6\u30a3\u30b9",
+            "score": 26516,
+            "timestamp": 1780354859
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 29261,
+            "timestamp": 1781676601
+        },
+        {
+            "name": "\u5fb3\u5cf6\u30f4\u30a9\u30eb\u30c6\u30a3\u30b9",
+            "score": 30328,
+            "timestamp": 1780354933
+        },
+        {
+            "name": "\u6d6a\u4eba\u3042\u304b\u3064\u304d",
+            "score": 30773,
+            "timestamp": 1780355353
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 31078,
+            "timestamp": 1781396469
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 33021,
+            "timestamp": 1781396583
+        },
+        {
+            "name": "\u6d6a\u4eba\u3042\u304b\u3064\u304d",
+            "score": 33701,
+            "timestamp": 1780354838
+        },
+        {
+            "name": "\u30e1\u30f3\u30c8\u30b9",
+            "score": 34092,
+            "timestamp": 1781595750
+        },
+        {
+            "name": "\u6d6a\u4eba\u3042\u304b\u3064\u304d",
+            "score": 35302,
+            "timestamp": 1780354947
+        },
+        {
+            "name": "\u304b\u308f\u304b\u307f",
+            "score": 36954,
+            "timestamp": 1781510724
         }
     ]
 }
