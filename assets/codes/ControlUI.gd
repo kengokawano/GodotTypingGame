@@ -29,6 +29,12 @@ var GameData = null
 # モード選択用ButtonGroup
 var mode_button_group: ButtonGroup = ButtonGroup.new()
 
+# Shift+Escの連打によるデバッグボタン表示切り替え用
+const DEBUG_ESC_COUNT: int = 3        # 必要な連打回数
+const DEBUG_ESC_INTERVAL_MS: int = 800  # 連打とみなす間隔(ミリ秒)
+var _esc_press_count: int = 0
+var _esc_last_press_ms: int = 0
+
 func _ready():
 	# AutoloadされたGameDataを取得
 	if has_node("/root/GameData"):
@@ -431,10 +437,18 @@ func _is_any_input_focused() -> bool:
 
 func _input(event: InputEvent):
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
-		# Ctrl+Shift+Dでデバッグボタン表示
-		if event.keycode == KEY_D and event.ctrl_pressed and event.shift_pressed:
-			if btn_debug_toggle:
-				btn_debug_toggle.visible = not btn_debug_toggle.visible
+		# Shiftを押しながらEscを3回連打でデバッグボタン表示
+		if event.keycode == KEY_ESCAPE and event.shift_pressed:
+			var now = Time.get_ticks_msec()
+			if now - _esc_last_press_ms <= DEBUG_ESC_INTERVAL_MS:
+				_esc_press_count += 1
+			else:
+				_esc_press_count = 1
+			_esc_last_press_ms = now
+			if _esc_press_count >= DEBUG_ESC_COUNT:
+				_esc_press_count = 0
+				if btn_debug_toggle:
+					btn_debug_toggle.visible = not btn_debug_toggle.visible
 		elif event.keycode == KEY_SPACE:
 			# 入力欄にフォーカスがある場合は無視
 			if not _is_any_input_focused() and not ranking_panel.visible:

@@ -297,6 +297,7 @@ layout_mode = 2
 alignment = 1
 
 [node name="btnDebugToggle" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=765812627]
+visible = false
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_vxiwm")
 theme_override_font_sizes/font_size = 16
