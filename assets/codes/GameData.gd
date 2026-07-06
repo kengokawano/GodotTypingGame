@@ -88,3 +88,8 @@ func add_to_ranking(player_name: String) -> bool:
 		is_ranking_eligible = false  # 一度登録したら再登録不可
 
 	return success
+
+func get_ranking_error_message() -> String:
+	if ranking_manager:
+		return ranking_manager.get_last_error_message()
+	return ""

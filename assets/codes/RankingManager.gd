@@ -22,6 +22,8 @@ var _is_loading: bool = false
 var _load_complete: bool = false
 var _is_submitting: bool = false
 var _submit_complete: bool = false
+var _submit_success: bool = false
+var _last_error_message: String = ""  # サーバーが返した表示用エラーメッセージ
 
 func _ready():
 	# HTTPRequestノードを作成
@@ -216,7 +218,11 @@ func is_score_rankable(score: int, mode: GameMode) -> bool:
 	else:
 		return score < worst_score  # より短い時間
 
+func get_last_error_message() -> String:
+	return _last_error_message
+
 func add_ranking_entry(player_name: String, score: int, mode: GameMode) -> bool:
+	_last_error_message = ""
 	if not is_score_rankable(score, mode):
 		return false
 
@@ -226,15 +232,16 @@ func add_ranking_entry(player_name: String, score: int, mode: GameMode) -> bool:
 		# HTTP通信完了を待つ
 		while _is_submitting:
 			await get_tree().create_timer(0.1).timeout
+		return _submit_success
 	else:
 		# ローカルに保存（従来の方式）
 		add_ranking_entry_local(player_name, score, mode)
-
-	return true
+		return true
 
 func submit_score_to_api(player_name: String, score: int, mode: GameMode):
 	_is_submitting = true
 	_submit_complete = false
+	_submit_success = false
 
 	var url = api_base_url + "/submit_score.php"
 	var mode_string = "normal" if mode == GameMode.NORMAL else "time_attack"
@@ -264,6 +271,7 @@ func submit_score_to_api(player_name: String, score: int, mode: GameMode):
 		_is_submitting = false
 		# フォールバック: ローカルに保存
 		add_ranking_entry_local(player_name, score, mode)
+		_submit_success = true
 
 func _on_submit_score_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
 	if result != HTTPRequest.RESULT_SUCCESS:
@@ -292,8 +300,11 @@ func _on_submit_score_completed(result: int, response_code: int, headers: Packed
 				await get_tree().create_timer(0.1).timeout
 			_is_submitting = false
 			_submit_complete = true
+			_submit_success = true
 		else:
 			printerr("API returned success=false")
+			if data is Dictionary:
+				_last_error_message = str(data.get("message", ""))
 			_is_submitting = false
 	else:
 		printerr("Failed to parse submit response")

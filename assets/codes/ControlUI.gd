@@ -260,25 +260,7 @@ func on_ranking_register_pressed():
 	if player_name.is_empty():
 		return
 
-	# 暴力的な名前・誹謗中傷などを弾く（クライアントサイド）
-	var forbidden_words = ["死ね", "殺す", "アホ", "あほ", "馬鹿", "ばか", "バカ", "かす", "カス", "ゴミ", "ごみ", "きもい", "キモイ", "うざい", "ウザイ", "ガイジ", "池沼", "氏ね", "しね", "シネ", "コロス", "ころす", "うんこ", "ウンコ",
-		"雑魚", "ざこ", "ザコ", "ざっこ", "ザッコ", "ｻﾞｺ",
-		# 性器・性的な語
-		"ちんこ", "チンコ", "ちんちん", "チンチン", "ちんぽ", "チンポ", "ちんぽこ", "チンポコ", "ぽこちん", "ポコチン", "ペニス", "penis", "きんたま", "キンタマ", "金玉", "ちんぴく",
-		"まんこ", "マンコ", "おまんこ", "オマンコ", "ヴァギナ", "ばぎな", "vagina", "クリトリス", "くりとりす", "われめ", "ワレメ", "まんげ", "マンゲ", "陰毛",
-		"おっぱい", "オッパイ", "ぱいおつ", "パイオツ", "ちくび", "チクビ", "乳首", "巨乳", "きょにゅう",
-		"陰茎", "陰部", "性器", "勃起", "ぼっき", "ボッキ", "射精", "しゃせい", "オナニー", "おなにー", "自慰", "マスターベーション",
-		"童貞", "どうてい", "処女", "しょじょ", "パイズリ", "ぱいずり", "フェラ", "ふぇら", "クンニ", "くんに", "アナル", "あなる", "anal", "dick", "pussy", "cock", "boobs", "tits",
-		"セックス", "sex", "fuck", "shit", "bitch"]
-	# スペース・全角スペース・タブなどを除去してチェック（「ち ん こ」のような回避を防止）
-	var name_for_check = RegEx.create_from_string("[\\s\\u3000]+").sub(player_name, "", true)
-	for word in forbidden_words:
-		if name_for_check.to_lower().find(word) != -1:
-			la_score_label.text = "不適切な言葉が含まれているため登録できません"
-			la_score_label.modulate = Color(1, 0.3, 0.3)  # 赤色で警告
-			var tween = create_tween()
-			tween.tween_property(la_score_label, "modulate", Color(1, 1, 1), 1.0).set_delay(2.0)
-			return
+	# NGワードチェックはサーバー側（submit_score.php）で行い、エラーメッセージもサーバーから受け取る
 
 	if GameData:
 		var score = GameData.get_score()
@@ -311,7 +293,16 @@ func on_ranking_register_pressed():
 
 			# ランキング登録後にスコアクリア
 			GameData.clear_score()
-		
+		else:
+			# サーバーが返したエラーメッセージを表示（NGワードなど）
+			var error_message = GameData.get_ranking_error_message()
+			if error_message.is_empty():
+				error_message = "ランキング登録に失敗しました"
+			la_score_label.text = error_message
+			la_score_label.modulate = Color(1, 0.3, 0.3)  # 赤色で警告
+			var error_tween = create_tween()
+			error_tween.tween_property(la_score_label, "modulate", Color(1, 1, 1), 1.0).set_delay(2.0)
+
 		if btn_ranking_register: btn_ranking_register.disabled = false
 
 func on_ranking_close_pressed():
