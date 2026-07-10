@@ -1,20 +1,66 @@
-[gd_scene format=3 uid="uid://cv5ohpdtk3k2i"]
+[gd_scene load_steps=12 format=3 uid="uid://cv5ohpdtk3k2i"]
 
 [ext_resource type="Script" uid="uid://dpolr6jmmn1o8" path="res://assets/codes/ControlUI.gd" id="1_vxiwm"]
 [ext_resource type="FontFile" uid="uid://cucm0i1etshfo" path="res://assets/fonts/LINESeedJP_A_TTF_Rg.ttf" id="2_vxiwm"]
 [ext_resource type="FontFile" uid="uid://b7e7qokanlr2f" path="res://assets/fonts/LINESeedJP_A_TTF_Eb.ttf" id="3_w2my6"]
+[ext_resource type="Shader" path="res://assets/shaders/Background.gdshader" id="4_bgsh"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
+shader = ExtResource("4_bgsh")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 22.0
+content_margin_bottom = 14.0
+bg_color = Color(0.04, 0.045, 0.07, 0.62)
+border_width_left = 3
+border_color = Color(0.9, 0.1, 0.16, 0.85)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mode"]
+content_margin_left = 30.0
+content_margin_top = 14.0
+content_margin_right = 30.0
+content_margin_bottom = 16.0
+bg_color = Color(0.04, 0.045, 0.07, 0.55)
+border_width_left = 3
+border_color = Color(0.9, 0.1, 0.16, 0.7)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_left = 12
+corner_radius_bottom_right = 12
 
 [sub_resource type="LabelSettings" id="LabelSettings_nw7le"]
 font = ExtResource("3_w2my6")
-font_size = 66
+font_size = 78
+font_color = Color(1, 1, 1, 1)
+outline_size = 2
+outline_color = Color(0.35, 0.03, 0.06, 0.7)
+shadow_size = 22
+shadow_color = Color(1, 0.12, 0.2, 0.4)
+shadow_offset = Vector2(0, 0)
+
+[sub_resource type="LabelSettings" id="LabelSettings_sub"]
+font = ExtResource("2_vxiwm")
+font_size = 18
+font_color = Color(1, 0.45, 0.45, 0.85)
 
 [sub_resource type="LabelSettings" id="LabelSettings_8kh01"]
 font = ExtResource("2_vxiwm")
-font_size = 48
+font_size = 40
+font_color = Color(1, 0.94, 0.9, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="LabelSettings" id="LabelSettings_w2my6"]
 font = ExtResource("2_vxiwm")
-font_size = 32
+font_size = 16
+font_color = Color(1, 1, 1, 0.4)
 
 [node name="CanvasLayer" type="CanvasLayer" unique_id=730091158]
 script = ExtResource("1_vxiwm")
@@ -28,22 +74,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="UpperBackground" type="ColorRect" parent="Background" unique_id=1506889174]
+[node name="BackgroundRect" type="ColorRect" parent="Background"]
+material = SubResource("ShaderMaterial_bg")
 layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.678431, 0.129412, 0, 1)
-
-[node name="LowerBackground" type="ColorRect" parent="Background" unique_id=2033986284]
-layout_mode = 0
-anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.501961, 0.501961, 0.501961, 1)
 
 [node name="DebugPanel" type="Panel" parent="." unique_id=1186254072]
 visible = false
@@ -216,52 +253,64 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="NormalRanking" type="VBoxContainer" parent="RankingDisplay" unique_id=1754067607]
+[node name="NormalRanking" type="PanelContainer" parent="RankingDisplay"]
 layout_mode = 1
-offset_left = 20.0
-offset_top = 80.0
-offset_right = 300.0
-offset_bottom = 580.0
+offset_left = 28.0
+offset_top = 90.0
+offset_right = 326.0
+offset_bottom = 570.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="NormalTitle" type="Label" parent="RankingDisplay/NormalRanking" unique_id=626608243]
+[node name="VBox" type="VBoxContainer" parent="RankingDisplay/NormalRanking"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_vxiwm")
-theme_override_font_sizes/font_size = 20
-text = "ノーマル Top10"
+theme_override_constants/separation = 10
+
+[node name="NormalTitle" type="Label" parent="RankingDisplay/NormalRanking/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.42, 0.42, 1)
+theme_override_fonts/font = ExtResource("3_w2my6")
+theme_override_font_sizes/font_size = 19
+text = "ノーマル TOP10"
 horizontal_alignment = 1
 
-[node name="NormalList" type="RichTextLabel" parent="RankingDisplay/NormalRanking" unique_id=2031408593]
-custom_minimum_size = Vector2(280, 350)
+[node name="NormalList" type="RichTextLabel" parent="RankingDisplay/NormalRanking/VBox"]
+custom_minimum_size = Vector2(250, 350)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vxiwm")
-theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/normal_font_size = 15
 bbcode_enabled = true
 text = "読み込み中..."
 scroll_active = false
 
-[node name="TimeAttackRanking" type="VBoxContainer" parent="RankingDisplay" unique_id=975759589]
+[node name="TimeAttackRanking" type="PanelContainer" parent="RankingDisplay"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -300.0
-offset_top = 80.0
-offset_right = -20.0
-offset_bottom = 580.0
+offset_left = -326.0
+offset_top = 90.0
+offset_right = -28.0
+offset_bottom = 570.0
 grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="TimeAttackTitle" type="Label" parent="RankingDisplay/TimeAttackRanking" unique_id=694515643]
+[node name="VBox" type="VBoxContainer" parent="RankingDisplay/TimeAttackRanking"]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_vxiwm")
-theme_override_font_sizes/font_size = 20
-text = "タイムアタック Top10"
+theme_override_constants/separation = 10
+
+[node name="TimeAttackTitle" type="Label" parent="RankingDisplay/TimeAttackRanking/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.42, 0.42, 1)
+theme_override_fonts/font = ExtResource("3_w2my6")
+theme_override_font_sizes/font_size = 19
+text = "タイムアタック TOP10"
 horizontal_alignment = 1
 
-[node name="TimeAttackList" type="RichTextLabel" parent="RankingDisplay/TimeAttackRanking" unique_id=102404082]
-custom_minimum_size = Vector2(280, 350)
+[node name="TimeAttackList" type="RichTextLabel" parent="RankingDisplay/TimeAttackRanking/VBox"]
+custom_minimum_size = Vector2(250, 350)
 layout_mode = 2
 theme_override_fonts/normal_font = ExtResource("2_vxiwm")
-theme_override_font_sizes/normal_font_size = 14
+theme_override_font_sizes/normal_font_size = 15
 bbcode_enabled = true
 text = "読み込み中..."
 scroll_active = false
@@ -281,8 +330,14 @@ horizontal_alignment = 1
 
 [node name="Title" type="Label" parent="VBoxContainer" unique_id=407511931]
 layout_mode = 2
-text = "Football Typing"
+text = "FOOTBALL TYPING"
 label_settings = SubResource("LabelSettings_nw7le")
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "T Y P E  /  K I C K  /  S C O R E"
+label_settings = SubResource("LabelSettings_sub")
 horizontal_alignment = 1
 
 [node name="laScore" type="Label" parent="VBoxContainer" unique_id=6536143]
@@ -305,27 +360,47 @@ text = "Debug"
 
 [node name="btnStart" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=2061087530]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("2_vxiwm")
-theme_override_font_sizes/font_size = 32
-text = "Start"
+theme_override_fonts/font = ExtResource("3_w2my6")
+theme_override_font_sizes/font_size = 30
+text = "KICK OFF!"
 
 [node name="CenterContainer" type="CenterContainer" parent="VBoxContainer" unique_id=36955060]
 layout_mode = 2
 
-[node name="ModeSelection" type="VBoxContainer" parent="VBoxContainer/CenterContainer" unique_id=1755289232]
+[node name="ModePanel" type="PanelContainer" parent="VBoxContainer/CenterContainer"]
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mode")
+
+[node name="ModeSelection" type="VBoxContainer" parent="VBoxContainer/CenterContainer/ModePanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
 alignment = 2
 
-[node name="btnNormal" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection" unique_id=641479500]
+[node name="btnNormal" type="CheckBox" parent="VBoxContainer/CenterContainer/ModePanel/ModeSelection"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.92, 0.92, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_vxiwm")
+theme_override_font_sizes/font_size = 22
 text = "Normal"
 
-[node name="btnTimeAttack" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection" unique_id=2060131733]
+[node name="btnTimeAttack" type="CheckBox" parent="VBoxContainer/CenterContainer/ModePanel/ModeSelection"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.92, 0.92, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_vxiwm")
+theme_override_font_sizes/font_size = 22
 text = "Time Attack"
 
-[node name="btnSEEnabled" type="CheckBox" parent="VBoxContainer/CenterContainer/ModeSelection" unique_id=311430989]
+[node name="btnSEEnabled" type="CheckBox" parent="VBoxContainer/CenterContainer/ModePanel/ModeSelection"]
 layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.92, 0.92, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_vxiwm")
+theme_override_font_sizes/font_size = 22
 button_pressed = true
 text = "SE: ON"
 
@@ -336,8 +411,9 @@ horizontal_alignment = 1
 
 [node name="NoticeLabel" type="Label" parent="VBoxContainer"]
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.55)
 theme_override_fonts/font = ExtResource("2_vxiwm")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "※ランキング登録時、不適切な言葉を含む名前は登録されません"
 horizontal_alignment = 1
 

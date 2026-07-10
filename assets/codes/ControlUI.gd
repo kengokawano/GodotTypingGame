@@ -2,17 +2,17 @@ extends CanvasLayer
 
 @onready var btn_start: Button = $VBoxContainer/HBoxContainer/btnStart
 @onready var btn_debug_toggle: Button = $VBoxContainer/HBoxContainer/btnDebugToggle
-@onready var btn_normal: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnNormal
-@onready var btn_time_attack: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnTimeAttack
-@onready var btn_se_enabled: CheckBox = $VBoxContainer/CenterContainer/ModeSelection/btnSEEnabled
+@onready var btn_normal: CheckBox = $VBoxContainer/CenterContainer/ModePanel/ModeSelection/btnNormal
+@onready var btn_time_attack: CheckBox = $VBoxContainer/CenterContainer/ModePanel/ModeSelection/btnTimeAttack
+@onready var btn_se_enabled: CheckBox = $VBoxContainer/CenterContainer/ModePanel/ModeSelection/btnSEEnabled
 @onready var debug_panel: Panel = $DebugPanel
 @onready var ranking_panel: Panel = $RankingPanel
 @onready var ranking_score_label: Label = $RankingPanel/ScoreLabel
 @onready var ranking_name_input: LineEdit = $RankingPanel/NameInput
 @onready var btn_ranking_register: Button = $RankingPanel/btnRankingRegister
 @onready var btn_ranking_close: Button = $RankingPanel/btnRankingClose
-@onready var normal_ranking_list: RichTextLabel = $RankingDisplay/NormalRanking/NormalList
-@onready var time_attack_ranking_list: RichTextLabel = $RankingDisplay/TimeAttackRanking/TimeAttackList
+@onready var normal_ranking_list: RichTextLabel = $RankingDisplay/NormalRanking/VBox/NormalList
+@onready var time_attack_ranking_list: RichTextLabel = $RankingDisplay/TimeAttackRanking/VBox/TimeAttackList
 @onready var start_id_input: LineEdit = $DebugPanel/StartIdInput
 @onready var end_id_input: LineEdit = $DebugPanel/EndIdInput
 @onready var btn_debug_start: Button = $DebugPanel/btnDebugStart
@@ -89,7 +89,7 @@ func _ready():
 	
 	# ボタンテキストをリセット（Loading状態から復帰）
 	if btn_start:
-		btn_start.text = "Start"
+		btn_start.text = "KICK OFF!"
 		btn_start.disabled = false
 	if btn_debug_start:
 		btn_debug_start.text = "Debug Start"
@@ -341,10 +341,10 @@ func _on_btn_start_mouse_exited():
 func _start_pulse_animation():
 	if not btn_start: return
 	
-	# 無限ループするパルスアニメーション
+	# 無限ループするパルスアニメーション（呼吸するようにゆっくり）
 	var tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(btn_start, "modulate:a", 0.7, 0.8)
-	tween.tween_property(btn_start, "modulate:a", 1.0, 0.8)
+	tween.tween_property(btn_start, "modulate:a", 0.85, 1.0)
+	tween.tween_property(btn_start, "modulate:a", 1.0, 1.0)
 
 func _start_label_pulse():
 	if not la_score_label: return
@@ -356,71 +356,109 @@ func _start_label_pulse():
 func _setup_button_style():
 	if not btn_start: return
 	
-	# レッズカラーの定義
-	var REDS_RED = Color(0.85, 0.0, 0.0)
-	var REDS_DARK = Color(0.1, 0.1, 0.1)
+	# レッズカラーの定義（ナイトスタジアム配色）
+	var REDS_RED = Color(0.88, 0.06, 0.12)          # メインの赤
+	var REDS_BRIGHT = Color(1.0, 0.16, 0.22)        # ホバー時の明るい赤
+	var REDS_SOFT = Color(1.0, 0.42, 0.42)          # 淡い赤（枠・文字サブ）
 	var REDS_WHITE = Color(1.0, 1.0, 1.0)
-	
-	# スタートボタン・登録ボタン用 (赤ベース)
+	var GLOW_RED = Color(1.0, 0.12, 0.2, 0.35)      # 赤グロー
+
+	# スタートボタン・登録ボタン用 (赤グロー付き)
 	var style_red = StyleBoxFlat.new()
 	style_red.bg_color = REDS_RED
-	style_red.corner_radius_top_left = 12
-	style_red.corner_radius_top_right = 12
-	style_red.corner_radius_bottom_left = 12
-	style_red.corner_radius_bottom_right = 12
-	style_red.content_margin_left = 30
-	style_red.content_margin_right = 30
-	style_red.shadow_size = 6
+	style_red.set_corner_radius_all(14)
+	style_red.content_margin_left = 46
+	style_red.content_margin_right = 46
+	style_red.content_margin_top = 10
+	style_red.content_margin_bottom = 12
+	style_red.border_width_bottom = 4
+	style_red.border_color = Color(0.45, 0.02, 0.06)
+	style_red.shadow_size = 16
+	style_red.shadow_color = GLOW_RED
 	style_red.shadow_offset = Vector2(0, 4)
-	
+
 	var style_red_hover = style_red.duplicate()
-	style_red_hover.bg_color = Color(1.0, 0.1, 0.1)
-	style_red_hover.shadow_size = 10
-	
+	style_red_hover.bg_color = REDS_BRIGHT
+	style_red_hover.shadow_size = 24
+	style_red_hover.shadow_color = Color(1.0, 0.15, 0.25, 0.5)
+
+	var style_red_pressed = style_red.duplicate()
+	style_red_pressed.bg_color = Color(0.55, 0.03, 0.08)
+	style_red_pressed.border_width_bottom = 0
+	style_red_pressed.shadow_size = 6
+	style_red_pressed.content_margin_top = 13
+	style_red_pressed.content_margin_bottom = 9
+
 	# スタートボタン適用
 	btn_start.add_theme_stylebox_override("normal", style_red)
 	btn_start.add_theme_stylebox_override("hover", style_red_hover)
-	btn_start.add_theme_stylebox_override("pressed", style_red)
+	btn_start.add_theme_stylebox_override("pressed", style_red_pressed)
 	btn_start.add_theme_stylebox_override("focus", style_red_hover)
 	btn_start.add_theme_color_override("font_color", REDS_WHITE)
+	btn_start.add_theme_color_override("font_hover_color", REDS_WHITE)
+	btn_start.add_theme_color_override("font_pressed_color", REDS_SOFT)
 
-	# ランキングパネル
+	# ランキングパネル（モーダルカード）
 	if ranking_panel:
 		var style_panel = StyleBoxFlat.new()
-		style_panel.bg_color = Color(0.08, 0.08, 0.08, 0.95) # 深い黒
-		style_panel.border_width_left = 3
-		style_panel.border_width_top = 3
-		style_panel.border_width_right = 3
-		style_panel.border_width_bottom = 3
-		style_panel.border_color = REDS_RED
-		style_panel.corner_radius_top_left = 15
-		style_panel.corner_radius_top_right = 15
-		style_panel.corner_radius_bottom_left = 15
-		style_panel.corner_radius_bottom_right = 15
-		style_panel.shadow_size = 25
+		style_panel.bg_color = Color(0.05, 0.055, 0.08, 0.97)
+		style_panel.set_border_width_all(1)
+		style_panel.border_width_left = 4
+		style_panel.border_color = Color(1.0, 0.25, 0.3, 0.5)
+		style_panel.set_corner_radius_all(10)
+		style_panel.shadow_size = 40
+		style_panel.shadow_color = Color(0, 0, 0, 0.6)
 		ranking_panel.add_theme_stylebox_override("panel", style_panel)
+
+	# 名前入力欄（ダーク角丸）
+	if ranking_name_input:
+		var style_input = StyleBoxFlat.new()
+		style_input.bg_color = Color(0, 0, 0, 0.4)
+		style_input.set_border_width_all(1)
+		style_input.border_color = Color(1.0, 0.3, 0.35, 0.3)
+		style_input.set_corner_radius_all(6)
+		style_input.content_margin_left = 10
+		style_input.content_margin_right = 10
+		style_input.content_margin_top = 4
+		style_input.content_margin_bottom = 4
+
+		var style_input_focus = style_input.duplicate()
+		style_input_focus.border_color = REDS_SOFT
+
+		ranking_name_input.add_theme_stylebox_override("normal", style_input)
+		ranking_name_input.add_theme_stylebox_override("focus", style_input_focus)
+		ranking_name_input.add_theme_color_override("font_color", REDS_WHITE)
+		ranking_name_input.add_theme_color_override("caret_color", REDS_SOFT)
 
 	# ランキング登録ボタン適用
 	if btn_ranking_register:
-		btn_ranking_register.add_theme_stylebox_override("normal", style_red)
-		btn_ranking_register.add_theme_stylebox_override("hover", style_red_hover)
+		var style_register = style_red.duplicate()
+		style_register.content_margin_left = 20
+		style_register.content_margin_right = 20
+		var style_register_hover = style_red_hover.duplicate()
+		style_register_hover.content_margin_left = 20
+		style_register_hover.content_margin_right = 20
+		btn_ranking_register.add_theme_stylebox_override("normal", style_register)
+		btn_ranking_register.add_theme_stylebox_override("hover", style_register_hover)
 		btn_ranking_register.add_theme_color_override("font_color", REDS_WHITE)
-	
-	# ランキング閉じるボタン (黒/赤枠)
+
+	# ランキング閉じるボタン (ゴースト風・赤枠のみ)
 	if btn_ranking_close:
-		var style_close = style_red.duplicate()
-		style_close.bg_color = REDS_DARK
-		style_close.border_width_left = 2
-		style_close.border_width_top = 2
-		style_close.border_width_right = 2
-		style_close.border_width_bottom = 2
-		style_close.border_color = REDS_RED
+		var style_close = StyleBoxFlat.new()
+		style_close.bg_color = Color(1, 1, 1, 0.04)
+		style_close.set_border_width_all(1)
+		style_close.border_color = Color(1.0, 0.42, 0.42, 0.45)
+		style_close.set_corner_radius_all(14)
+		style_close.content_margin_left = 20
+		style_close.content_margin_right = 20
 		btn_ranking_close.add_theme_stylebox_override("normal", style_close)
-		
+
 		var style_close_hover = style_close.duplicate()
-		style_close_hover.bg_color = Color(0.2, 0.2, 0.2)
+		style_close_hover.bg_color = Color(1, 1, 1, 0.1)
+		style_close_hover.border_color = REDS_SOFT
 		btn_ranking_close.add_theme_stylebox_override("hover", style_close_hover)
-		btn_ranking_close.add_theme_color_override("font_color", REDS_WHITE)
+		btn_ranking_close.add_theme_color_override("font_color", REDS_SOFT)
+		btn_ranking_close.add_theme_color_override("font_hover_color", REDS_WHITE)
 
 func _is_any_input_focused() -> bool:
 	var focused = get_viewport().gui_get_focus_owner()

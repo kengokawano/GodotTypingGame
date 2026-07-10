@@ -4,7 +4,7 @@ extends CanvasLayer
 @onready var info_text: RichTextLabel = $all/infoText
 @onready var kana_progress_label: RichTextLabel = $all/KanaProgressLabel
 @onready var kana_label: RichTextLabel = $all/KanaRitch
-@onready var time_label: Label = $all/TimeLabel
+@onready var time_label: Label = $all/TimeContainer/TimeLabel
 @onready var combo_label: Label = $ComboContainer/ComboLabel
 @onready var combo_text_label: Label = $ComboContainer/ComboTextLabel
 @onready var combo_particles: CPUParticles2D = $ComboContainer/ComboLabel/ComboParticles
@@ -19,8 +19,8 @@ extends CanvasLayer
 enum GameMode { NONE, NORMAL, TIME_ATTACK, DEBUG }
 
 # UI色の設定（インスペクターで変更可能）
-@export var color_completed: String = "#ff7f7f"  # 完了した文字の色
-@export var color_current: String = "yellow"     # 現在の文字の色
+@export var color_completed: String = "#8a92a3"  # 完了した文字の色（沈んだグレー）
+@export var color_current: String = "#ffe14d"    # 現在の文字の色（イエローカード）
 @export var color_normal: String = "white"       # 通常の文字の色
 
 # デバッグモード設定（インスペクターで変更可能）
@@ -626,7 +626,7 @@ func show_time_bonus_popup(amount: float):
 	popup.text = "+%.1f秒" % amount
 	popup.add_theme_font_override("font", time_label.get_theme_font("font"))
 	popup.add_theme_font_size_override("font_size", 32)
-	popup.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4))  # 緑
+	popup.add_theme_color_override("font_color", Color(1.0, 0.88, 0.3))  # イエロー（背景の赤緑と被らない）
 	popup.z_index = 100
 	add_child(popup)
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=200 format=3 uid="uid://blkgy3omvu03m"]
+[gd_scene load_steps=202 format=3 uid="uid://blkgy3omvu03m"]
 
 [ext_resource type="Script" uid="uid://pt716l6g5a8k" path="res://assets/codes/Main.gd" id="1_fpf70"]
 [ext_resource type="Texture2D" uid="uid://dudfv6bkvvano" path="res://assets/sprite/act1.jpg" id="2_34wpn"]
@@ -6,6 +6,10 @@
 [ext_resource type="FontFile" uid="uid://bq285wwufxwh4" path="res://assets/fonts/LINESeedJP_A_TTF_Bd.ttf" id="3_bold"]
 [ext_resource type="Texture2D" uid="uid://3moeuofporgr" path="res://assets/sprite/dash.jpg" id="3_jv468"]
 [ext_resource type="AudioStream" uid="uid://bca02sr2e0q6y" path="res://assets/se/key1.mp3" id="4_key1"]
+[ext_resource type="Shader" path="res://assets/shaders/Background.gdshader" id="5_bgsh"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bg"]
+shader = ExtResource("5_bgsh")
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_cb1w8"]
 atlas = ExtResource("2_34wpn")
@@ -1342,14 +1346,26 @@ colors = PackedColorArray(1, 0.8, 0.9, 1, 1, 0.8, 0.9, 0)
 [sub_resource type="LabelSettings" id="LabelSettings_fpf70"]
 font = ExtResource("2_g1376")
 font_size = 44
+font_color = Color(1, 1, 1, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="LabelSettings" id="LabelSettings_embyv"]
-font = ExtResource("2_g1376")
+font = ExtResource("3_bold")
 font_size = 46
+font_color = Color(1, 1, 1, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_offset = Vector2(0, 3)
 
 [sub_resource type="LabelSettings" id="LabelSettings_jv468"]
-font = ExtResource("2_g1376")
+font = ExtResource("3_bold")
 font_size = 32
+font_color = Color(1, 0.5, 0.5, 1)
+shadow_size = 8
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_offset = Vector2(0, 3)
 
 [node name="Main" type="CanvasLayer"]
 script = ExtResource("1_fpf70")
@@ -1365,22 +1381,13 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="UpperBackground" type="ColorRect" parent="Background"]
+[node name="BackgroundRect" type="ColorRect" parent="Background"]
+material = SubResource("ShaderMaterial_bg")
 layout_mode = 0
-anchor_right = 1.0
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.678431, 0.129412, 0, 1)
-
-[node name="LowerBackground" type="ColorRect" parent="Background"]
-layout_mode = 0
-anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.5, 0.5, 0.5, 1)
 
 [node name="playerAnimation" type="AnimatedSprite2D" parent="."]
 position = Vector2(1020, 558)
@@ -1469,8 +1476,8 @@ alignment = 1
 
 [node name="ModeLabel" type="Label" parent="all/header"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_fonts/font = ExtResource("2_g1376")
+theme_override_colors/font_color = Color(1, 0.42, 0.42, 0.9)
+theme_override_fonts/font = ExtResource("3_bold")
 theme_override_font_sizes/font_size = 20
 text = "TIME ATTACK"
 horizontal_alignment = 2
@@ -1527,6 +1534,7 @@ layout_mode = 2
 [node name="infoText" type="RichTextLabel" parent="all"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+theme_override_colors/default_color = Color(0.9, 0.88, 0.88, 0.9)
 theme_override_fonts/normal_font = ExtResource("2_g1376")
 theme_override_font_sizes/normal_font_size = 24
 bbcode_enabled = true
@@ -1570,29 +1578,32 @@ text = "ここに入力
 "
 scroll_active = false
 
-[node name="TimeLabel" type="Label" parent="all"]
+[node name="TimeContainer" type="HBoxContainer" parent="all"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3_bold")
-theme_override_font_sizes/font_size = 36
-text = "XXX"
-label_settings = SubResource("LabelSettings_embyv")
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_constants/separation = 16
+alignment = 1
 
-[node name="TimeLabel" type="Label" parent="all/TimeLabel"]
-layout_mode = 0
-offset_left = -150.0
-offset_top = 10.0
-offset_right = -47.0
-offset_bottom = 62.0
+[node name="RemainingLabel" type="Label" parent="all/TimeContainer"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3_bold")
 theme_override_font_sizes/font_size = 36
 text = "残り"
 label_settings = SubResource("LabelSettings_jv468")
 horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TimeLabel" type="Label" parent="all/TimeContainer"]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_bold")
+theme_override_font_sizes/font_size = 36
+text = "XXX"
+label_settings = SubResource("LabelSettings_embyv")
+horizontal_alignment = 0
 vertical_alignment = 1
 
 [node name="CorrectKeyAudio" type="AudioStreamPlayer" parent="."]
