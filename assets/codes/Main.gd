@@ -85,15 +85,15 @@ var _preloaded_animations: Dictionary = {}  # プリロードされたアニメ�
 func _process(delta):
 	if _is_game_started and (_current_mode == GameMode.TIME_ATTACK or _current_mode == GameMode.DEBUG):
 		_elapsed_time += delta
-		score_label.text = "%.1f秒" % _elapsed_time
+		_set_text(score_label, "%.1f秒" % _elapsed_time)
 	elif _is_game_started and _current_mode == GameMode.NORMAL:
 		_remaining_time_in_seconds -= delta
 		if _remaining_time_in_seconds <= 0.0:
 			_remaining_time_in_seconds = 0.0
-			time_label.text = "%.1f" % 0.0
+			_set_text(time_label, "%.1f" % 0.0)
 			finish_game()
 		else:
-			time_label.text = "%.1f" % _remaining_time_in_seconds
+			_set_text(time_label, "%.1f" % _remaining_time_in_seconds)
 
 func _ready():
 	# Autoloadされたシングルトンを取得
@@ -419,20 +419,20 @@ func return_to_title():
 
 func update_display():
 	if not _is_game_started:
-		question_label.text = "Typing Game"
-		info_text.text = _load_status_msg
-		kana_progress_label.text = ""
-		kana_label.text = "Press a button to start"
-		time_label.text = ""
-		combo_label.text = ""
+		_set_text(question_label, "Typing Game")
+		_set_text(info_text, _load_status_msg)
+		_set_text(kana_progress_label, "")
+		_set_text(kana_label, "Press a button to start")
+		_set_text(time_label, "")
+		_set_text(combo_label, "")
 		combo_text_label.visible = false
-		score_label.text = ""
-		miss_label.text = ""
-		mode_label.text = "READY"
+		_set_text(score_label, "")
+		_set_text(miss_label, "")
+		_set_text(mode_label, "READY")
 		return
 
 	# 問題文を適切な長さで改行
-	question_label.text = format_text_with_line_breaks(_current_question_text, 30)
+	_set_text(question_label, format_text_with_line_breaks(_current_question_text, 30))
 	# 情報表示: ニュース問題は「ニュース | era」、それ以外は「No | Pos | era」
 	var info_parts = []
 	if "ニュース" in _current_question_tags:
@@ -447,7 +447,7 @@ func update_display():
 		if _current_question_era != "":
 			info_parts.append("[color=#cccccc]%s[/color]" % _current_question_era)
 
-	info_text.text = " | ".join(info_parts)
+	_set_text(info_text, " | ".join(info_parts))
 
 	var kana_progress_text = ""
 	for i in range(_current_kana.size()):
@@ -459,7 +459,7 @@ func update_display():
 			kana_progress_text += _current_kana[i]
 	
 	# かな進捗を適切な長さで改行（RichTextLabel用）
-	kana_progress_label.text = format_kana_progress_with_line_breaks(kana_progress_text, 20)
+	_set_text(kana_progress_label, format_kana_progress_with_line_breaks(kana_progress_text, 20))
 
 	var roman_text = ""
 	if not _candidate_romans.is_empty() and _input_roman_index > 0:
@@ -495,32 +495,40 @@ func update_display():
 		
 		# 1つずつ改行
 		roman_text = "\n".join(formatted_romans)
-	kana_label.text = roman_text
+	_set_text(kana_label, roman_text)
 
 	# コンボが3以上の時だけ表示
 	if _combo_count >= 3:
-		combo_label.text = "%s" % _combo_count
+		_set_text(combo_label, "%s" % _combo_count)
 		combo_text_label.visible = true
 	else:
-		combo_label.text = ""
+		_set_text(combo_label, "")
 		combo_text_label.visible = false
 
 	# ミス数は別表示で固定幅
-	miss_label.text = "%s" % _miss_count
+	_set_text(miss_label, "%s" % _miss_count)
 
 	if _current_mode == GameMode.NORMAL:
-		time_label.text = "%.1f" % _remaining_time_in_seconds
-		score_label.text = "%s" % _total_key_presses
-		mode_label.text = "NORMAL"
+		_set_text(time_label, "%.1f" % _remaining_time_in_seconds)
+		_set_text(score_label, "%s" % _total_key_presses)
+		_set_text(mode_label, "NORMAL")
 	elif _current_mode == GameMode.TIME_ATTACK:
-		time_label.text = "%s/%s" % [_questions_completed + 1, time_attack_question_count]
-		score_label.text = "%.1f秒" % _elapsed_time
-		mode_label.text = "TIME ATTACK"
+		_set_text(time_label, "%s/%s" % [_questions_completed + 1, time_attack_question_count])
+		_set_text(score_label, "%.1f秒" % _elapsed_time)
+		_set_text(mode_label, "TIME ATTACK")
 	elif _current_mode == GameMode.DEBUG:
 		var current_id = _debug_questions[_debug_current_index].id if _debug_current_index < _debug_questions.size() else -1
-		time_label.text = "ID: %s" % current_id
-		score_label.text = "%s/%s" % [_questions_completed, _debug_questions.size()]
-		mode_label.text = "DEBUG (%s-%s)" % [_debug_start_id, _debug_end_id]
+		_set_text(time_label, "ID: %s" % current_id)
+		_set_text(score_label, "%s/%s" % [_questions_completed, _debug_questions.size()])
+		_set_text(mode_label, "DEBUG (%s-%s)" % [_debug_start_id, _debug_end_id])
+
+
+# テキストが変わらないときは再代入しない。
+# Label/RichTextLabel は代入ごとに再シェーピング(RichTextLabelはBBCode再パースも)が走るため、
+# 毎キー入力・毎フレームの無駄な再描画を抑えて Web 版の入力応答(INP)を安定させる。
+func _set_text(label, value: String) -> void:
+	if label.text != value:
+		label.text = value
 
 func handle_key_press(input_char: String):
 	if input_char.is_empty(): return
